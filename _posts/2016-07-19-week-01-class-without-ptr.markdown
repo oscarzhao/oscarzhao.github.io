@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "C++: 设计一个不含指针的class (Geekband)"
+title:  "C++: 不含指针的class(geekband)"
 date:   2016-07-19 23:28:00 +0800
 categories: C++
 ---
