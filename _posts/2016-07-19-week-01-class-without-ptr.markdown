@@ -61,12 +61,13 @@ __doapl (complex* this, const complex& r)
 inline函数执行起来更高效，关于其原因，MSDN上有一段描述：
 
 ~~~
-The inline and __inline specifiers instruct the compiler to insert a copy 
-of the function body into each place the function is called.
+The inline and __inline specifiers instruct the compiler to insert 
+a copy of the function body into each place the function is called.
 
-The insertion (called inline expansion or inlining) occurs only if the 
-compiler's cost/benefit analysis show it to be profitable. Inline expansion 
-alleviates the function-call overhead at the potential cost of larger code size.
+The insertion (called inline expansion or inlining) occurs only if 
+the compiler's cost/benefit analysis show it to be profitable. Inline 
+expansion alleviates the function-call overhead at the potential cost
+of larger code size.
 ~~~
 
 大致意思是：编译时，调用inline函数的位置，都会被inline函数的函数体替换，而不是存放该函数的地址。
