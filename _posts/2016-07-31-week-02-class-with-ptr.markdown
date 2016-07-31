@@ -40,14 +40,19 @@ private:
 
 ### static 修饰成员变量
 特点： 该成员变量属于 class，不属于特定的class 实例。
+
 应用场景： 银行利率。
+
 初始化： 在类的外部进行初始化。
 
 ### static 修饰成员函数
 特点： 该方法属于 class，不属于特定的 class 实例。
+
 应用场景： 处理static成员变量。
+
 调用： 可以使用 class 名称进行调用；或者通过 class 的任何实例调用。
 
+看下面这个例子：
 {% highlight c++ %}
 class Account
 {
@@ -67,6 +72,7 @@ int main() {
 {% endhighlight %}
 
 ### 一个用途： Singleton （单例模式）
+看代码：
 
 {% highlight c++ %}
 class A
