@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "C++: 包含指针的class(geekband)"
+title:  "C++: 面向对象简介(geekband)"
 date:   2016-07-31 11:59:00 +0800
 categories: C++
 ---
