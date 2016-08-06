@@ -22,7 +22,8 @@ categories: C++
 ## 临时对象
 临时对象是指在`函数作用域`或`块作用域`内定义的变量。
 临时对象在需要返回一个新对象时，可以有效减少代码的冗余，比如:
-{% highlight c++ %}
+
+``` c++
 // complex.h, derived from ppt
 // ...
 // 省略代码
@@ -34,7 +35,7 @@ operator + (double x, const complex&y)
   return complex(x + real(y), imag(y));
 }
 
-{% endhighlight %}
+```
 
 ## friend（友元）
 C++ class属性可以被public、protected、private修饰，从而对外表现出不同的形态，实现对对象的封装。
@@ -42,7 +43,8 @@ C++ class属性可以被public、protected、private修饰，从而对外表现�
 么时候使用friend，是一个涉及到权衡和取舍的问题。
 
 常用 friend的一个地方是 辅助函数，比如complex类的 `__doapl(complex*, const complex&)`
-{% highlight c++ %}
+
+``` c++
 // complex.h, derived from ppt
 
 inline complex&
@@ -51,7 +53,7 @@ __doapl (complex* this, const complex& r)
   // ...
   return *this;
 }
-{% endhighlight %}
+```
 非常tricky的一点是：`同一个class的所有实例互为友元。`
 
 ## inline（内联函数）

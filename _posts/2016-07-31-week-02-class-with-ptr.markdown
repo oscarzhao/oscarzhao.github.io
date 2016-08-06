@@ -16,7 +16,8 @@ categories: C++
 
 ## 构造函数和析构函数
 对于包含指针作为成员变量的class，需要设计构造函数和析构函数，以便内存管理。这三个函数的声明方式如下：
-{% highlight c++ %}
+
+``` c++
 class String
 {
 public:                                 
@@ -28,7 +29,7 @@ public:
 private:
    char* m_data;
 };
-{% endhighlight %}
+```
 
 注意： 
 
@@ -53,7 +54,8 @@ private:
 调用： 可以使用 class 名称进行调用；或者通过 class 的任何实例调用。
 
 看下面这个例子：
-{% highlight c++ %}
+
+``` c++
 class Account
 {
 public:
@@ -69,12 +71,12 @@ int main() {
   Account a;
   a.set_rate(7.0);  // 通过 class 实例调用
 }
-{% endhighlight %}
+```
 
 ### 一个用途： Singleton （单例模式）
 看代码：
 
-{% highlight c++ %}
+``` c++
 class A
 {
 public:
@@ -90,7 +92,7 @@ A& A::getInstance() {
   static A a;  // 第一次调用时，才会创建 a
   return a;
 }
-{% endhighlight %}
+```
 
 ## class template 和 function template
 区别： class template在使用时，需要声明类型；function template 使用时，模板会自动推导类型，使用上和正常的函数一样。
