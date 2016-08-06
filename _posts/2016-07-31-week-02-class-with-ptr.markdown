@@ -74,6 +74,8 @@ int main() {
 ```
 
 ### 一个用途： Singleton （单例模式）
+单例模式下，构造函数被设置为 private， 通过 <class名>::getInstance() 函数获取 全局唯一的实例。
+
 看代码：
 
 ``` c++
@@ -95,6 +97,26 @@ A& A::getInstance() {
 ```
 
 ## class template 和 function template
-区别： class template在使用时，需要声明类型；function template 使用时，模板会自动推导类型，使用上和正常的函数一样。
+模板类(函数) 允许定义一类功能类似的 类(函数)，在`编译期展开`为具体的类（函数）。
+两者的区别： class template在使用时，需要声明类型；function template 使用时，模板会自动推导类型，使用上和正常的函数一样。
+
+标准库内置了很多模板类和模板函数。
+
+常用的模板类有：
+
+1. std::vector
+2. std::deque
+3. std::map
+4. std::array
+5. std::stack 
+6. 更多参考[C++中的容器 (Containers)](http://www.cplusplus.com/reference/stl/ "containers")
+
+常用的模板函数有：
+
+1. std::less
+2. std::less_equal
+3. std::greater
+4. std::greater_equal
+5. 更多参考 [C++中的函数模板](http://www.cplusplus.com/reference/functional/ "functional")
 
 ## 未完待续 ...

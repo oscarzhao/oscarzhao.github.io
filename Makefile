@@ -10,6 +10,6 @@ clean:
 	rm -rf _site
 
 serve: clean
-	jekyll serve
+	jekyll serve --incremental
 
 .PHONY: all deps build clean
