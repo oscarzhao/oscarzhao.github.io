@@ -292,3 +292,64 @@ String 和 StringRep 对象的关系如下图所示：
 继承的语法是 定义一个类时，使用冒号。在UML图中，使用空心三角形的箭头表示：
 
 ![继承](http://obi1zst3q.bkt.clouddn.com/20160807_inheritance "inheritance")
+
+继承关系中，我们称被继承的类为 父类 (base class)， 继承者类 称为 子类 (derived class)。
+
+在讨论继承时，我们所说的是 public 继承。当然也有 private 和 protected 继承，不同的关键字意味着
+子类对象对父类成员变量不同的访问权限。具体的权限可以查看
+msdn上关于 [member access controll](https://msdn.microsoft.com/en-us/library/kktasw36.aspx "member access controll") 的描述。
+这里我们只讨论 public 继承。 
+
+在继承体系下，创建子类对象时，先调用父类构造函数，然后调用子类的构造函数；销毁子类对象时，先调用子类的析构函数，然后才调用父类的析构函数。
+
+### 2.4 委托 + 继承 （设计模式：观察者模式）
+
+#### 2.4.1 应用场景
+先举个例子，在实现多窗口应用时，不同的窗口需要同步数据。比如 ppt的多窗口，Dota2的大地图和小地图。这里就用到了观察者模式。
+
+![dota2](http://obi1zst3q.bkt.clouddn.com/20160807_Dota-2-review-7.jpg "dota2")
+
+![ppt](http://obi1zst3q.bkt.clouddn.com/20160807_ppt "ppt")
+
+首先，我们做一个抽象：
+
+后台真正去处理和更新数据的类，我们称之为 Subject
+
+根据数据渲染 UI 的类，我们称之为 Observer
+
+我们将两个类同步数据的代码 抽象出来，如下所示：
+
+``` c++
+// Subject 类的设计
+class Subject {
+    int m_value;
+    vector<Observer*> m_views;
+public:
+    void attach(Observer* obs) {
+        m_views.push_back(obs);
+    }
+    void set_val(int value) {
+        m_value = value;
+        notify();
+    }
+    void notify() {
+        for (int i = 0;i < m_views.size(); i++) {
+            m_views[i]->update(this, m_value);
+        }
+    }
+};
+
+// Observer 类的设计
+class Observer {
+public:
+    virtual void update(Subject* sub, int value) = 0;
+}
+```
+
+两个类的关系用 UML 图表示为：
+
+![Oberser](http://obi1zst3q.bkt.clouddn.com/20160807_observer "oberser")
+
+以 ppt 为例，四个窗口用四个 Observer 对象表示，后台的数据用一个 Subject 对象表示。 
+如果要增加一个窗口，则创建一个 Observer 对象，并使用Subject::attach方法与 Subject 
+对象建立关系。这里未列出 取消两者关系的方法。
