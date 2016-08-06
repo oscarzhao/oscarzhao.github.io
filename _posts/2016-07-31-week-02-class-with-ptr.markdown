@@ -271,7 +271,7 @@ int main() {
     string s1(s);       // 创建 string s1, 背后仍然是 sr; sr.count == 2
     s1[0] = 'h';        // 修改 s1 不影响 s，为 s1 创建一个新的 StringRep 对象; src.count == 1
     string s2 = s;         // 创建 string s2, 背后仍然是 sr; sr.count == 2
-    string* ps1 = new string(s); // 创建 string 指针 ps1, 背后对象仍然是 sr; sr.count == 4
+    string* ps1 = new string(s); // 创建 string 指针 ps1, 背后对象仍然是 sr; sr.count == 3
     delete ps1;            // 删除 ps1，sr.count == 2
     
     string t("Hello");   // 创建 string 对象 t，t 背后的 StringRep 不是 sr，而是一个全新的 StringRep对象
@@ -317,6 +317,7 @@ msdn上关于 [member access controll](https://msdn.microsoft.com/en-us/library/
 
 根据数据渲染 UI 的类，我们称之为 Observer
 
+#### 2.4.2 具体实现
 我们将两个类同步数据的代码 抽象出来，如下所示：
 
 ``` c++
@@ -353,3 +354,156 @@ public:
 以 ppt 为例，四个窗口用四个 Observer 对象表示，后台的数据用一个 Subject 对象表示。 
 如果要增加一个窗口，则创建一个 Observer 对象，并使用Subject::attach方法与 Subject 
 对象建立关系。这里未列出 取消两者关系的方法。
+
+### 2.5 委托 + 继承 （设计模式：Composite，合成模式）
+
+#### 2.5.1 应用场景
+在Linux 或 Windows 的文件系统中，文件 (file) 和文件夹 (directory) 是表现为两类属性类似的对象。
+我们常常会执行下面几个操作：
+
+1. 拷贝 (文件、目录)
+2. 剪切（文件、目录）
+3. 移动（文件、目录到另一个目录）
+4. 粘贴（文件、目录 到另一个目录目录）
+5. (从一个目录) 删除（文件、目录）
+
+那么问题来了：在代码层面上，如何设计目录和文件，才能简单明了地支持这些操作呢？
+
+答案是：Composite design pattern， 即合成模式。在UML图中，文件系统中 文件和目录 的结构如下：
+
+![composite](http://obi1zst3q.bkt.clouddn.com/blog/cpp/20160807_composite_design_pattern "composite")
+
+#### 2.5.2 具体实现
+
+下面是具体的代码实现：
+
+``` c++
+// Component 类 （base class)
+class Component {
+    int value;
+public:
+    Component(int val): value(val){}
+    virtual void add(Component* elem) {}  // 默认实现不做任何事情
+};
+
+// Primitive 类 (对应 文件系统中的“文件”)
+class Primitive : public Component{
+public:
+    Primitive(int val): Component(val) {}
+};
+
+// Composite 类 (对应 文件系统中的“目录”)
+class Composite : public Component {
+    vector<Component*> c;
+public:
+    Composite(int val): Component(val) {}
+    
+    void add(Component* elem) {
+        c.push_back(elem);
+    } 
+}
+```
+
+这里 父类 Component 的 add 函数没有设定为纯虚函数，而是使用了空实现（不做任何操作），
+Primitive 继承它时，也不需要自己去定义，符合使用者的直觉。
+
+### 2.6 委托 + 继承 （设计模式：Prototype）
+
+#### 2.6.1 应用场景
+设计模式都是在工业生产中总结出来的一套做事方法。Prototype 什么时候使用，为什么会出现？
+课程里侯捷老师讲到的”创建未来需要的子类“的说法感觉不太有说服力，所以找了下其它的资料。在这里列出来：
+
+1. [Prototype Design Pattern](https://sourcemaking.com/design_patterns/prototype "prototype")
+2. [Prototype Pattern](http://www.oodesign.com/prototype-pattern.html "prototype")
+
+这里我才用了 第一篇中的观点：
+
+1. 指定对象的类型后，允许通过拷贝 Prototype 创建一个新的对象
+2. 可以使用 Prototype 创建以后可以使用的对象
+3. 应当尽量避免 new 操作符
+
+#### 2.6.2 具体实现
+
+Prototype 模式的 UML 图如下：
+
+![prototype uml](http://obi1zst3q.bkt.clouddn.com/blog/cpp/20160807_prototype_uml_houjie "dd")
+
+Prototype 模式下有三个类：
+
+1. Client - 向 Prototype 请求创建创建一个副本。（对应 Prototype 的调用方）
+2. Prototype - 声明一个父类，以及clone方法(纯虚函数) 用来复制自身。（对应 Image 类）
+3. ConcretePrototype - 覆盖（override） 父类 Prototype 类的clone 方法，用来克隆自身。（对应 SpotImage、LandSatImage）
+
+源代码如下：
+
+``` c++
+#include <iostream>
+enum imageType {
+    LSAT, SPOT
+};
+
+// 父类 Image 的实现
+class Image {
+public:
+    virtual void draw() = 0;
+    static Image* findAndClone(imageType);
+protected:
+    virtual imageType returnType() = 0;
+    virtual Image* clone() = 0;
+    // 每增加一个子类，都要注册到 prototype 中
+    static void addPrototype(Image *image) {
+        _prototypes[_nextSlot++] = image;
+    }
+private:
+    // addPrototype() 方法 将注册的 prototype 存放在这个变量中
+    static Image* _prototypes[10];
+    static int _nextSlot;
+};
+
+// 初始化 static 变量
+Image* Image::_prototypes[10];
+int Image::_nextSlot;
+
+// Client 调用 这个 public 方法创建 Image的子类的对象
+Image* Image::findAndClone(imageType type) {
+    for(int i = 0;i < _nextSlot; i++) {
+        if( _prototypes[i]->returnType() == type) {
+            return _prototypes[i]->clone();
+        }
+    }
+}
+
+// 子类 LandSatImage 的实现
+class LandSatImage : public Image {
+public:
+    imageType returnType() { return LSAT; }
+    void draw() { cout << "LandSatImage::draw " << _id << end; }
+    Image* clone() { return new LastSatImage(1); } // 只在注册的时候调用，创建时不能调用
+protected:
+    // 只能从clone 方法调用，不要从其它位置调用
+    LandSatImage(int dummy) { // 这个参数没有任何意义，只是为了与默认构造函数区分开
+        _id  = _count++;  // id 用来标示 该对象 是 clone() 方法创建的第几个对象
+    }
+private:
+    // 这里，静态的 _landSatImage 被初始化时，会调用默认构造函数 LandSatImage(), 
+    // 默认构造函数 会调用 addPrototype 方法 将自己注册到父类。
+    static LandSatImage _landSatImage;
+    LandSatImage() {
+        addPrototype(this);
+    }
+
+    int _id;
+    static int _count;
+};
+
+// 初始化操作在这里
+LandSatImage LandSatImage::_landSatImage;
+
+// 该变量对 clone 方法创建的对象进行计数
+int LandSatImage::_count = 0;
+```
+
+注意： 这里是用索引，遍历查找子类的注册对象。在实际生产环境中，一般使用 子类名称 作为key查找。
+
+另外，对于子类 LandSatImage，成员变量 _count 可以记录 clone() 方法创建的 LandSatImage 对象的个数。
+每个对象都有一个 _id 属性，用来标记它是第几个被 clone() 方法创建的。
