@@ -90,7 +90,7 @@ int main(int argc, char * argv[]) {
 }
 ```
 
-使用 explicit 修饰构造函数以后，上面的默认转换就要失败。
+使用 explicit 修饰构造函数以后，上面的默认转换就会失败。
 
 ### 1.3  pointer-like class (智能指针)
 像指针的类，是指该 class 的对象表现出来像一个指针。这么做的目的是实现一个比指针更强大的结构。
@@ -184,6 +184,7 @@ ite->method();
 ```
 
 ### 1.4 function-like classes (仿函数)
+
 #### 1.4.1 什么是仿函数？
 仿函数其实不是函数，是一个类，但是它的行为和函数类似。在实现的层面上，一个类一旦定义了 operator() 方法，就可以称之为仿函数。
 
@@ -235,4 +236,114 @@ template <class T> struct less {
 注意：std::less 是类模板。在课程中，侯捷老师提到了 unary_function 和 binary_function，这两个类定义了参数类型，C++11中已经不再
 使用，而是内置到 std::less 中，具体参考[这里](http://www.cplusplus.com/reference/functional/less/ "less")
 
-### 1.5 未完待续
+#### 1.5 命名空间 (namespace)
+命名空间用于 模块分离和解耦。为了更好地说明一些细节，这里使用从 [msdn](https://msdn.microsoft.com/en-us/library/5cb46ksf.aspx "msdn") 摘取一段话：
+
+
+``A namespace is a declarative region that provides a scope to the identifiers (the names of types, functions, variables, etc) inside it.`` 
+
+``Namespaces are used to organize code into logical groups and to prevent name collisions that can occur especially when your code base includes multiple libraries.`` 
+
+``All identifiers at namespace scope are visible to one another without qualification.`` 
+
+``Identifiers outside the namespace can access the members by using the fully qualified name for each identifier, for example std::vector<std::string> vec;, or else by a using Declaration for a single identifier (using std::string), or a using Directive (C++) for all the identifiers in the namespace (using namespace std;).`` 
+
+``Code in header files should always use the fully qualified namespace name.``
+
+## Part 2 模板 (template)
+
+### 2.1 class template (类模板)
+
+前面几篇博客对类模板有所涉及，这里不再赘述。C++标准库的容器都是类模板的范例，比如：
+
+1. [std::vector](http://www.cplusplus.com/reference/vector/ "vector")
+2. [std::stack](http://www.cplusplus.com/reference/stack/ "stack")
+3. [std::array](http://www.cplusplus.com/reference/stack/ "array")
+4. [std::map](http://www.cplusplus.com/reference/map/ "map")
+5. [and so on](http://www.cplusplus.com/reference/, "etc")
+
+### 2.2 function template (函数模板)
+
+对于 function template ，前面几篇博客也都有所涉及。C++标准库 algorithm 分类下有将近 90 个函数模板，
+这里我列出几个：
+
+1. [std::min](http://www.cplusplus.com/reference/algorithm/min/ "min")
+2. [std::max](http://www.cplusplus.com/reference/algorithm/max/ "max")
+3. [std::minmax](http://www.cplusplus.com/reference/algorithm/minmax/ "minmax")
+4. [std::sort](http://www.cplusplus.com/reference/algorithm/sort/ "sort")
+5. [std::copy](http://www.cplusplus.com/reference/algorithm/copy/ "copy")
+6. [std::for_each](http://www.cplusplus.com/reference/algorithm/for_each/ "for_each")
+7. [and so on](http://www.cplusplus.com/reference/algorithm/ "algorithm")
+
+下面我们以 std::for_each 为例，看下如何使用函数模板：
+
+``` c++
+// for_each example (来源：http://www.cplusplus.com/reference/algorithm/for_each/)
+#include <iostream>     // std::cout
+#include <algorithm>    // std::for_each
+#include <vector>       // std::vector
+
+void myfunction (int i) {  // function:
+  std::cout << ' ' << i;
+}
+
+struct myclass {           // function object type:
+  void operator() (int i) {std::cout << ' ' << i;}
+} myobject;
+
+int main () {
+  std::vector<int> myvector;
+  myvector.push_back(10);
+  myvector.push_back(20);
+  myvector.push_back(30);
+
+  std::cout << "myvector contains:";
+  for_each (myvector.begin(), myvector.end(), myfunction);
+  std::cout << '\n';
+
+  // or:
+  std::cout << "myvector contains:";
+  for_each (myvector.begin(), myvector.end(), myobject);
+  std::cout << '\n';
+
+  return 0;
+}
+```
+
+在这个例子中，注意函数 myfunction 和 仿函数 myobject 的用法，think twice about that。
+
+另外，使用函数模板时，不需要指定特化类型，因为编译器会根据参数进行自动推导。
+
+### 2.3 Member method (成员模板，默认为成员函数模板)
+
+从使用者的角度来看，成员模板 比 类模板 具有更大的自由度。由于C++强大的继承机制，成员模板也有一些使用场景。
+这里以 shared_ptr 为例：
+
+``` c++
+// 定义 类模板 shared_ptr
+template <typename _Tp>
+class shared_ptr : pubic __shared_ptr<_Tp> {
+  //... 省略代码 ...
+
+  template <typename _Tp1>
+  explicit shared_ptr(_Tp1* __p) : __shared_ptr<_TP>(__p) {}
+
+  // ... 省略代码 ...
+};
+
+// 使用 shared_ptr 的模板构造函数
+// Derived1 类是 Base1 的子类
+int main() {
+  Base1 *ptr = new Derived1;  // 向上转型
+
+  shared_ptr<Base1> sptr(new Derived1);  // 支持向上转型
+}
+```
+
+这个例子中，成员模板允许 shared_ptr 支持接收子类对象的指针，构造一个父类shared_ptr。
+
+### 2.4 specialization (模板特化)
+
+模板本身是泛化的，允许用户在使用时进行特化。但是模板的设计有时候不能满足所有特化类型的要求，
+比如 std::vector 容纳 bool 时会有问题，所有有了 std::vector<bool> 的特化版本。
+
