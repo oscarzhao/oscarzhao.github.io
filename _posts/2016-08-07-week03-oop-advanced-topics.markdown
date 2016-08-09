@@ -344,6 +344,248 @@ int main() {
 
 ### 2.4 specialization (模板特化)
 
-模板本身是泛化的，允许用户在使用时进行特化。但是模板的设计有时候不能满足所有特化类型的要求，
-比如 std::vector 容纳 bool 时会有问题，所有有了 std::vector<bool> 的特化版本。
+模板本身是泛化的，允许用户在使用时进行特化。所谓“特化”，其实是指 在编译器的展开。
+但是模板的设计有时候不能满足所有特化类型的要求，比如 std::vector 容纳 bool 时会有问题，
+所有有了 `std::vector<bool>` 的特化版本。
 
+#### 2.4.1 模板偏特化
+
+模板偏特化 可以分为两类： 
+
+1. 个数上的“偏”
+
+  例如 `std::vector<int, typename Alloc=.....>` 相对于 `std::vector<typename T, typename Alloc=......>`
+
+2. 类型上的“偏” (由对象扩展到 指针类型)
+
+  这里直接看一个例子：
+
+``` c++
+// 泛化版本
+template <typename T>
+class C {
+  //... 
+};
+
+// 扩展到指针的 特化版本
+template <typename T>
+class C<T*> {
+  //...
+};
+
+// 使用 特化版本
+int main() {
+  C<string> obj1;    // 正常的特化版本
+  C<string*> obj2;   // 特化的指针版本
+}
+```
+
+#### 2.4.2 模板模板参数（模板嵌套)
+模板模板参数是指 一个模板作为另一个模板的参数存在。这样的设计在使用上更为灵活。这里直接上一个例子：
+
+``` c++
+// 定义一个类模板，它使用一个模板作为模板参数
+template <typename T,
+  template <typename T>
+  class Container
+>
+class XCls {
+private:
+  Container<T> c;
+public:
+  // ...
+};
+
+// 定义Lst
+template<typename T>
+using Lst = list<T, allocator<T> >;     // 注意： Lst 只有一个模板参数，而 list 有两个模板参数
+// 使用该模板
+int main() {
+  XCls<string, list> mylist1;   // 合法的定义
+
+//XCls<string, Lst> mylist2;    // 不合法，因为 XCls 的第二个模板参数只接受一个参数（有点绕，think about it）
+}
+```
+
+这个模板的灵活性在于，第二个模板参数，你可以使用 std::list, std::stack, std::vector 
+等迭代器的特化版本作为参数，也就是说底层可以接入不同的“内存管理方案”（这个词想对准确）。
+
+## Part 3：C++语言层面的相关主题
+
+### 3.1 C++标准库概论
+
+这里用一张图表示
+
+![stl](http://obi1zst3q.bkt.clouddn.com/20160808_C++%20%E6%A0%87%E5%87%86%E5%BA%93%20%E5%85%A8%E5%9B%BE "stl")
+
+### 3.2 variadic templates：模板的可变参数列表 (C++11)
+
+模板的可变参数列表与 正常的可变参数列表是一样的，只是语法上有些特殊。
+下面是一个 print 的例子：
+
+``` c++
+// 定义 print 函数
+void print() {}
+
+template<typename T, typename... Types>
+void print(const T& firstArg, const Types&... args) {
+  cout << firstArg << endl;
+  print(args...);
+}
+
+// 使用 print 函数
+int main() {
+  print(7.5, "hello", bitset<16>(377),42);
+}
+```
+
+另外，对于模板参数，C++ 提供了辅助函数，用来获取可变参数列表的长度，函数签名为 `size_type sizeof...(args)`。
+
+### 3.3 auto (C++11) 
+
+auto 允许用户不声明变量的类型，而是留给编译器去推导。它是C++11加入的语法糖，可以减少有效代码量。
+
+关于 auto，更多细节参考 [msdn](https://msdn.microsoft.com/en-us/library/dd293667.aspx "msdn")
+
+### 3.4 range-based for (c++11)
+
+这是C++11 新增加的语法，可以有效减少代码量，与 auto 配合使用更佳。考虑到是否需要修改数组的值，决定是否采用引用，看代码：
+
+``` c++
+vector<double> vec;
+for (auto elem: vec) {  // 按值传递，不会修改数组的值
+  cout << elem << endl;  
+  elem *= 3;   // 即便这样写， 也只是修改了一个副本，不会修改 vec 的值。
+}
+
+for (auto& elem: vec){  // 按引用传递
+  elem *= 3;  // 使用引用会修改数组的值
+}
+```
+
+更多参考 [msdn上的描述](https://msdn.microsoft.com/en-us/library/jj203382.aspx)。
+
+### 3.5 关于 reference (一些引起误解的地方)
+
+#### 3.5.1 reference 的特征
+
+reference的两个特征：
+
+1. reference类型的变量一旦 代表某个变量，就永远不能代表另一个变量
+2. reference类型的变量  大小和地址 与 原对象相同 (即 sizeof 和 operator& 的返回值)
+
+下面用侯捷老师PPT上的一段代码来说明：
+
+``` c++
+int main() {
+  int x = 0;
+  int* p = &x;
+  int& r = x;  // r 代表 x，两者的值都是 0
+  int x2 = 5;
+
+  r = x2;      // 这一行赋值的结果是：x 的值也变成了 5
+  int& r2 = r; // r2、r 都代表 x，即值都是 5
+}
+```
+
+上面这个例子中，需要注意：
+
+1. sizeof(x) == sizeof(r)
+2. &x == &r
+
+#### 3.5.2 应用场景
+
+reference 通常用在两个地方：
+
+1. 参数传递 (比较快)
+2. 返回类型 
+
+### 3.6 构造和析构 (时间先后)
+
+本小节主要讲解构造和析构 在继承和组合体系下的运作机制。
+
+#### 3.6.1 继承体系中的构造和析构
+
+构造：由内而外。内是指Base，外指Derived
+析构：由外而内。先析构Derived Class，再析构Base Class 的部分
+
+注意：Base Class 的析构函数必须是 virtual 的，否则会报出 undefined behaviors 的错误。
+下面这段代码重现了这个错误：
+
+``` c++
+// 这段代码 来源于 stackoverflow ，但是经过了大量修改
+// http://stackoverflow.com/questions/461203/when-to-use-virtual-destructors
+
+#include <iostream>
+
+class Node {
+public:
+    Node() { std::cout << "Node()" << std::endl; }
+    ~Node() { std::cout << "~Node()" << std::endl; }
+};
+
+class Base 
+{
+public:
+    Base() { std::cout << "Base()" << std::endl; }
+    ~Base() { std::cout << "~Base()" << std::endl; }
+};
+
+class Derived : public Base
+{
+public:
+    Derived()  { std::cout << "Derived()"  << std::endl;  m_pNode = new Node(); }
+    ~Derived() { std::cout << "~Derived()" << std::endl;  delete m_pNode; }
+
+private:
+    Node* m_pNode;
+};
+
+int main() {
+    // 注意：Base的析构函数设置为 virtual
+    Base *b = new Derived();
+    // 使用 b
+    delete b; // 结果是：调用了 Base的构造函数
+
+    std::cout << "execute complete" << std::endl;
+}
+
+
+``` 
+上面这段代码打印结果是：
+
+```
+Base()
+Derived()
+Node()
+~Base() // 为什么只打印了 这个？？？
+execute complete
+```
+
+注意： 在实际的测试中，代码没有报出 undefined behavior 错误。但是出现了内存泄漏 m_pNode 的内存没有被释放。
+关于这段代码的解释，我联想到侯捷老师讲到的静态绑定和动态绑定，网上一张相关的ppt，
+点击[C++-dynamic-binding](http://www.cs.wustl.edu/~schmidt/PDF/C++-dynamic-binding4.pdf "vtable")查看。
+
+然后，我给 ~Base() 和 ~Derived() 都加上了 virtual (这里就不再列出代码)，结果仍然令人疑惑，结果如下：
+
+```
+Base()
+Derived()
+Node()
+~Derived()
+~Node()
+~Base()    // 为什么还会打印这个？？？
+execute complete
+```
+
+又查了下文档，在 msdn的文档和 C++ dynamic binding.pdf 文档中，都提到 destructor 是不可继承的（看下图）：
+
+![destructor](http://obi1zst3q.bkt.clouddn.com/blog/cpp/20160810-oop-pure-virtual-destructor.jpg "pic")
+
+![destructor](http://obi1zst3q.bkt.clouddn.com/blog/cpp/20160810_msdn_destructors_override.jpg "msdn")
+
+～Base() 虽然为 virtual 函数，但其不可继承（所以总是被override），因此析构的时候，会先调用 ~Derived(), 然后调用 ~Base()。
+
+关于继承体系下，析构的顺序，可以参考 [msdn](https://msdn.microsoft.com/en-us/library/6t4fe76c.aspx "msdn")。
+
+本文到此为止，谢谢耐心阅读。
