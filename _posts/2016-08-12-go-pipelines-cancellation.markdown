@@ -15,7 +15,14 @@ Go语言的并发原语允许开发者以类似于 Unix Pipe 的方式构建数�
 
 数据流水线充分利用了多核特性，代码层面是基于 channel 类型 和 go 关键字。
 
-如果你对这两个概念不太了解，建议先阅读之前发布的两篇文章：Go 语言内存模型(上/下)。
+channel 和 go 贯穿本文的始终。如果你对这两个概念不太了解，建议先阅读之前发布的两篇文章：[Go 语言内存模型(上/下)](https://mp.weixin.qq.com/s?__biz=MzIzODUwMzMzNg==&mid=2247483662&idx=1&sn=45e74fe1360c751f195e5b0dc9179f00&scene=1&srcid=0812a1CpwrGJYwoK4bMqtxXS&key=305bc10ec50ec19baa929e315f5a2a4fbd6f264992566e87e31257d6857045eeb1957adf545ed5e788980bd74402f7fc&ascene=0&uin=MTQ4NTIyMTI0Mw%3D%3D&devicetype=iMac+MacBookPro9%2C1+OSX+OSX+10.11.6+build(15G31)&version=11020201&pass_ticket=74TX34KwzOLRllB61%2BQ0JT2KgzWbgZG52VIFStnU8xo4UAk7Sw0nRNKGFpNpM9id "go memory model")。
+
+如果你对操作系统中"生产者"和"消费者"模型比较了解的话，也将有助于对本文中流水线的理解。
+
+本文中绝大多数讲解都是基于代码进行的。换句话说，如果你看不太懂某些代码片段，建议补全以后，在机器或play.golang.org 上运行一下。对于某些不明白的细节，可以手动添加一些语句以助于理解。
+
+由于 Go语言并发模型 的英文原文 [Go Concurrency Patterns: Pipelines and cancellation](https://blog.golang.org/pipelines "pipeline") 篇幅比较长，本文只包含 理论推导和简单的例子。
+下一篇文章我们会对 "并行MD5" 这个现实生活的例子进行详细地讲解。
 
 ## 什么是 "流水线" (pipeline)?
 
@@ -28,11 +35,11 @@ Go语言的并发原语允许开发者以类似于 Unix Pipe 的方式构建数�
 
 除了第一个和最后一个阶段，每个阶段都可以有任意个 inbound 和 outbound channel。
 显然，第一个阶段只有 outbound channel，而最后一个阶段只有 inbound channels。
-我们通常称第一个阶段为"生产者"或"源头"，称最后一个阶段为"消费者"或"接收者"。
+我们通常称第一个阶段为`"生产者"`或`"源头"`，称最后一个阶段为`"消费者"`或`"接收者"`。
 
 首先，我们通过一个简单的例子来演示这个概念和其中的技巧。后面我们会更出一个真实世界的例子。
 
-## 第一个例子：求平方数
+## 流水线入门：求平方数
 
 假设我们有一个流水线，它由三个阶段组成。
 
@@ -96,13 +103,14 @@ func main() {
 
 如果我们稍微修改一下 gen 函数，便可以模拟 haskell的惰性求值。有兴趣的读者可以自己折腾一下。
 
-## 第二个例子：扇入和扇出
+## 流水线进阶：扇入和扇出
 
 扇出：同一个 channel 可以被多个函数读取数据，直到channel关闭。
 这种机制允许将工作负载分发到一组worker，以便更好地并行使用 CPU 和 I/O。
 
-扇入：多个 channel 的数据可以被同一个函数读取和处理，直到所有 channel都关闭。 
-A function can read from multiple inputs and proceed until all are closed by multiplexing the input channels onto a single channel that's closed when all the inputs are closed. This is called fan-in.
+扇入：多个 channel 的数据可以被同一个函数读取和处理，然后合并到一个 channel，直到所有 channel都关闭。 
+
+// @TODO: 加两张图来表示这两个概念
 
 我们修改一下上个例子中的流水线，这里我们运行两个 sq 实例，它们从同一个 channel 读取数据。
 这里我们引入一个新函数 merge 对结果进行"扇入"操作：
@@ -126,7 +134,7 @@ merge 函数 将多个 channel 转换为一个 channel，它为每一个 inbound
 拷贝到 outbound channel。所有 `output` goroutine 被创建以后，merge 启动一个额外的 goroutine， 这个goroutine会
 等待所有 inbound channel 上的发送操作结束以后，关闭 outbound channel。
 
-对已经关闭的channel 执行发送操作(<-ch)会导致异常，所以我们必须保证所有的发送操作都在关闭channel之前结束。 
+对已经关闭的channel 执行发送操作(->ch)会导致异常，所以我们必须保证所有的发送操作都在关闭channel之前结束。 
 [sync.WaitGroup](http://golang.org/pkg/sync/#WaitGroup "sync.WaitGroup") 提供了一种组织同步的方式。
 merge 函数的实现见下面代码 (注意 wg 变量)：
 
@@ -158,7 +166,7 @@ func merge(cs ...<-chan int) <-chan int {
 }
 ```
 
-## Stopping short
+## 停下来思考一下
 
 在使用流水线函数时，有一个固定的模式：
 
@@ -168,7 +176,7 @@ func merge(cs ...<-chan int) <-chan int {
 在这种模式下，每一个接收阶段都可以写成 `range` 循环的方式，
 从而保证所有数据都被成功发送到下游后，goroutine能够立即退出。
 
-在现实中，阶段斌不总是接收所有的 inbound 数据。有时候是设计如此：接收者可能只需要数据的一个子集就可以继续执行。
+在现实中，阶段并不总是接收所有的 inbound 数据。有时候是设计如此：接收者可能只需要数据的一个子集就可以继续执行。
 更常见的情况是：由于前一个阶段返回一个错误，导致该阶段提前退出。
 这两种情况下，接收者都不应该继续等待后面的值被传送过来。
 
@@ -235,12 +243,155 @@ func merge(cs ...<-chan int) <-chan int {
 为了从根本上解决这个问题，我们需要提供一种机制，让下游阶段能够告知上游发送者停止接收的消息。
 下面我们看下这种机制。
 
-## Explicit cancellation
-to be continued...
+## Explicit cancellation 显式取消
+
+当 main 函数决定退出，并停止接收 out 发送的任何数据时，它必须告诉上游阶段的 goroutine 让它们放弃
+正在发送的数据。 main 函数通过发送数据到一个名为 done 的channel实现这样的机制。 由于有两个潜在的
+发送者被阻塞，它发送两个值。如下代码所示：
+
+``` golang
+func main() {
+    in := gen(2, 3)
+
+    // Distribute the sq work across two goroutines that both read from in.
+    c1 := sq(in)
+    c2 := sq(in)
+
+    // Consume the first value from output.
+    done := make(chan struct{}, 2)
+    out := merge(done, c1, c2)
+    fmt.Println(<-out) // 4 or 9
+
+    // Tell the remaining senders we're leaving.
+    done <- struct{}{}
+    done <- struct{}{}
+}
+```
+
+发送数据的 goroutine 使用一个 select 表达式代替原来的操作，select 表达式只有在接收到 out 或 done
+发送的数据后，才会继续进行下去。 done 的值类型为 struct{} ，因为它发送什么值不重要，重要的是它发送没发送：
+接收事件发生意味着 channel out 的发送操作被丢弃。 goroutine output 基于 inbound channel c 继续执行
+循环，所以上游阶段不会被阻塞。(后面我们会讨论如何让循环提前退出)。 使用 done channel 方式实现的merge 函数如下：
+
+``` golang
+func merge(done <-chan struct{}, cs ...<-chan int) <-chan int {
+    var wg sync.WaitGroup
+    out := make(chan int)
+
+    // Start an output goroutine for each input channel in cs.  output
+    // copies values from c to out until c is closed or it receives a value
+    // from done, then output calls wg.Done.
+    output := func(c <-chan int) {
+        for n := range c {
+            select {
+            case out <- n:
+            case <-done:
+            }
+        }
+        wg.Done()
+    }
+    // ... the rest is unchanged ...
+```
+
+这种方法有一个问题：每一个下游的接收者需要知道潜在被阻上游发送者的个数，然后向这些发送者发送信号让它们提前退出。
+时刻追踪这些数目是一项繁琐且易出错的工作。
+
+我们需要一种方式能够让未知数目、且个数不受限制的goroutine 停止向下游发送数据。在Go语言中，我们可以通过关闭一个
+channel 实现，因为`在一个已关闭 channel 上执行接收操作(<-ch)总是能够立即返回，返回值是对应类型的零值`。关于这点的细节，点击[这里](https://golang.org/ref/spec#Receive_operator "receive")查看。
+
+换句话说，我们只要关闭 done channel，就能够让解开对所有发送者的阻塞。对一个管道的关闭操作事实上是对所有接收者的广播信号。
+
+我们把 done channel 作为一个参数传递给每一个 流水线上的函数，通过 defer 表达式声明对 done channel的关闭操作。
+因此，所有从 main 函数作为源头被调用的函数均能够收到 done 的信号，每个阶段都能够正常退出。 使用 done 对main函数重构以后，代码如下：
+
+``` golang
+func main() {
+    // Set up a done channel that's shared by the whole pipeline,
+    // and close that channel when this pipeline exits, as a signal
+    // for all the goroutines we started to exit.
+    done := make(chan struct{})
+    defer close(done)
+
+    in := gen(done, 2, 3)
+
+    // Distribute the sq work across two goroutines that both read from in.
+    c1 := sq(done, in)
+    c2 := sq(done, in)
+
+    // Consume the first value from output.
+    out := merge(done, c1, c2)
+    fmt.Println(<-out) // 4 or 9
+
+    // done will be closed by the deferred call.
+}
+```
+
+现在，流水线中的每个阶段都能够在 done channel 被关闭时返回。merge 函数中的 output 代码也能够顺利返回，因为它
+知道 done channel关闭时，上游发送者 sq 会停止发送数据。 在 defer 表达式执行结束时，所有调用链上的 output 都能保证 wg.Done() 被调用：
+
+``` golang
+func merge(done <-chan struct{}, cs ...<-chan int) <-chan int {
+    var wg sync.WaitGroup
+    out := make(chan int)
+
+    // Start an output goroutine for each input channel in cs.  output
+    // copies values from c to out until c or done is closed, then calls
+    // wg.Done.
+    output := func(c <-chan int) {
+        defer wg.Done()
+        for n := range c {
+            select {
+            case out <- n:
+            case <-done:
+                return
+            }
+        }
+    }
+    // ... the rest is unchanged ...
+```
+
+同样的原理， done channel 被关闭时，sq 也能够立即返回。在defer表达式执行结束时，所有调用链上的 sq 都能保证 
+out channel 被关闭。代码如下：
+
+``` golang
+func sq(done <-chan struct{}, in <-chan int) <-chan int {
+    out := make(chan int)
+    go func() {
+        defer close(out)
+        for n := range in {
+            select {
+            case out <- n * n:
+            case <-done:
+                return
+            }
+        }
+    }()
+    return out
+} 
+```
+
+这里，我们给出几条构建流水线的指导：
+
+1. 当所有发送操作结束时，每个阶段都关闭自己的 outbound channels
+2. 每个阶段都会一直从 inbound channels 接收数据，直到这些 channels 被关闭，或发送者解除阻塞状态。
+
+流水线通过两种方式解除发送者的阻塞：
+
+1. 提供足够大的缓冲保存发送者发送的数据
+2. 接收者放弃 channel 时，显式地通知发送者。
+
+## 结论
+
+本文介绍了Go 语言中构建数据流水线的一些技巧。流水线的错误处理比较复杂，流水线的每个阶段都可能阻塞向下游发送数据
+下游阶段也可能不再关注上游发送的数据。上面我们介绍了通过关闭一个channel，向流水线中的所有 goroutine 发送一个 "done" 信号；也定义了
+构建流水线的正确方法。 
+
+下一篇文章，我们将通过一个 并行 md5 的例子来说明本文所讲的一些理念和技巧。
+
 
 原作者 Sameer Ajmani，翻译 Oscar
 
-下期预告：[Go语言并发模型：像Unix Pipe 那样使用channel](https://blog.golang.org/pipelines "pipelines")
+下期预告：Go语言并发模型：以并行md5计算为例。[原文链接](https://blog.golang.org/pipelines "pipelines")
 
 ### 相关链接：
 原文链接：https://blog.golang.org/pipelines
