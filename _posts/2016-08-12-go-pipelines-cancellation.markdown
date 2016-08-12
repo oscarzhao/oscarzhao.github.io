@@ -394,9 +394,10 @@ func sq(done <-chan struct{}, in <-chan int) <-chan int {
 下期预告：Go语言并发模型：以并行md5计算为例。[原文链接](https://blog.golang.org/pipelines "pipelines")
 
 ### 相关链接：
-原文链接：https://blog.golang.org/pipelines
 
-reflect 包：https://golang.org/pkg/reflect/
+1. 原文链接：https://blog.golang.org/pipelines
+2. Go并发模型：http://talks.golang.org/2012/concurrency.slide#1
+3. Go高级并发模型：http://blog.golang.org/advanced-go-concurrency-patterns
 
 扫码关注微信公众号“深入Go语言”
 
