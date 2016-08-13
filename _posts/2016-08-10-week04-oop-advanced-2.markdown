@@ -225,3 +225,107 @@ delete 的执行步骤：
 2. 调用operator delete释放内存 (free)
 
 虽然，new 和 delete 不能被重载，但是 operator new 和 operator delete 可以被重载。
+
+### 3.2 重载 operator new 和 operator delete
+
+#### 3.2.1 重载全局 operator new 和 operator delete
+
+用户可以通过重新定义 全局 new 和 delete 操作符，以便通过日志或其它方式记录内存的分配和释放。
+其中一个应用场景是用于检查内存泄漏。代码如下：
+
+``` c++
+// 这段代码来自于 msdn：https://msdn.microsoft.com/en-us/library/kftdy56f.aspx
+
+// spec1_the_operator_delete_function1.cpp
+// compile with: /EHsc
+// arguments: 3
+#include <iostream>
+#include <malloc.h>
+#include <memory.h>
+#include <stdlib.h>
+using namespace std;
+
+int fLogMemory = 0;      // Perform logging (0=no; nonzero=yes)?
+int cBlocksAllocated = 0;  // Count of blocks allocated.
+
+// User-defined operator new.
+void *operator new( size_t stAllocateBlock ) {
+   static int fInOpNew = 0;   // Guard flag.
+
+   if ( fLogMemory && !fInOpNew ) {
+      fInOpNew = 1;
+      clog << "Memory block " << ++cBlocksAllocated
+          << " allocated for " << stAllocateBlock
+          << " bytes\n";
+      fInOpNew = 0;
+   }
+   return malloc( stAllocateBlock );
+}
+
+// User-defined operator delete.
+void operator delete( void *pvMem ) {
+   static int fInOpDelete = 0;   // Guard flag.
+   if ( fLogMemory && !fInOpDelete ) {
+      fInOpDelete = 1;
+      clog << "Memory block " << cBlocksAllocated--
+          << " deallocated\n";
+      fInOpDelete = 0;
+   }
+
+   free( pvMem );
+}
+
+// User-defined operator delete.
+void operator delete[]( void *pvMem ) {
+   static int fInOpDelete = 0;   // Guard flag.
+   if ( fLogMemory && !fInOpDelete ) {
+      fInOpDelete = 1;
+      clog << "Memory block " << cBlocksAllocated--
+          << " deallocated\n";
+      fInOpDelete = 0;
+   }
+
+   free( pvMem );
+}
+
+int main( int argc, char *argv[] ) {
+   fLogMemory = 1;   // Turn logging on
+   if( argc > 1 )
+      for( int i = 0; i < atoi( argv[1] ); ++i ) {
+         char *pMem = new char[10];
+         delete[] pMem;
+      }
+   fLogMemory = 0;  // Turn logging off.
+   return cBlocksAllocated;
+}
+```
+
+编译并运行这段代码，可以看到如下输出：
+
+```
+oscar@ubuntu:~/$ g++ -o main spec1_the_operator_delete_function1.cpp -lm
+oscar@ubuntu:~/$ ./main 3
+Memory block 1 allocated for 10 bytes
+Memory block 1 deallocated
+Memory block 1 allocated for 10 bytes
+Memory block 1 deallocated
+Memory block 1 allocated for 10 bytes
+Memory block 1 deallocated
+```
+
+故事到这里还没有结束，细心的童鞋可能会发现：创建和释放 char* pMem 时，使用的分别是 operator new[] (size_t) 和 operator delete[] (void*),
+并没有调用 operator new 和 operator delete。打印的结果却告诉我：operator new 和 operator delete 确实被调用了(作惊恐状)！！！
+
+这里，我找到了 cpluscplus.com 上关于 operator new[] 的表述。不解释，直接上图：
+
+![operator array new](http://obi1zst3q.bkt.clouddn.com/blog/cpp/20160813-cpp-operator-new%5B%5D.jpg "operator array new")
+
+关于重新定义 operator new[] 和 operator delete[]，参考 msdn上[new and delete Operators](https://msdn.microsoft.com/en-us/library/kftdy56f.aspx "new and delete") 
+页面最下方类成员函数 operator new[] 和 operator delete[] 的实现，它们是类似的。 
+
+#### 3.2.2 重载类的成员函数 operator new 和 operator delete
+
+上面我们介绍了重写全局 operator new、operator new[]、operator delete、operator delete[] 的覆盖 (override)。
+下面我们看看 类作用域下这四个函数如何实现，应用场景以及注意事项。
+
+在类中重写 operator new/delete([]) 成员函数时，必须声明它们为 static，因此不能声明为虚函数。

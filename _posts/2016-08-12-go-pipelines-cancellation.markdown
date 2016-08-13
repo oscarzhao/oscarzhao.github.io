@@ -248,7 +248,7 @@ func merge(cs ...<-chan int) <-chan int {
 为了从根本上解决这个问题，我们需要提供一种机制，让下游阶段能够告知上游发送者停止接收的消息。
 下面我们看下这种机制。
 
-## Explicit cancellation 显式取消
+## 显式取消 (Explicit cancellation)
 
 当 main 函数决定退出，并停止接收 out 发送的任何数据时，它必须告诉上游阶段的 goroutine 让它们放弃
 正在发送的数据。 main 函数通过发送数据到一个名为 done 的channel实现这样的机制。 由于有两个潜在的
