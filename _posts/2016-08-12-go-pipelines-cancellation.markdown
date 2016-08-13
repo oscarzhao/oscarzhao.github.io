@@ -80,11 +80,11 @@ main 函数 用于设置流水线并运行最后一个阶段。最后一个阶�
 
 ``` golang
 func main() {
-    // Set up the pipeline.
+    // 设置流水线
     c := gen(2, 3)
     out := sq(c)
 
-    // Consume the output.
+    // 消费输出结果
     fmt.Println(<-out) // 4
     fmt.Println(<-out) // 9
 }
@@ -94,7 +94,7 @@ func main() {
 
 ``` golang
 func main() {
-    // Set up the pipeline and consume the output.
+    // 设置流水线并消费输出结果
     for n := range sq(sq(gen(2, 3))) {
         fmt.Println(n) // 16 then 81
     }
@@ -233,8 +233,8 @@ func gen(nums ...int) <-chan int {
 ``` golang
 func merge(cs ...<-chan int) <-chan int {
     var wg sync.WaitGroup
-    out := make(chan int, 1) // enough space for the unread inputs
-    // ... the rest is unchanged ...
+    out := make(chan int, 1) // 在本例中存储未读的数据足够了
+    // ... 其他部分代码不变 ...
 ```
 尽管这种方法解决了这个程序中阻塞 goroutine的问题，但是从长远来看，它并不是好办法。
 缓存大小选择为1 是建立在两个前提之上：
@@ -258,16 +258,18 @@ func merge(cs ...<-chan int) <-chan int {
 func main() {
     in := gen(2, 3)
 
-    // Distribute the sq work across two goroutines that both read from in.
+    // 启动两个运行 sq 的goroutine
+    // 两个goroutine的数据均来自于 in
     c1 := sq(in)
     c2 := sq(in)
 
-    // Consume the first value from output.
+    // 消耗 output 生产的第一个值
     done := make(chan struct{}, 2)
     out := merge(done, c1, c2)
     fmt.Println(<-out) // 4 or 9
 
-    // Tell the remaining senders we're leaving.
+    // 告诉其他发送者，我们将要离开
+    // 不再接收它们的数据
     done <- struct{}{}
     done <- struct{}{}
 }
@@ -283,9 +285,11 @@ func merge(done <-chan struct{}, cs ...<-chan int) <-chan int {
     var wg sync.WaitGroup
     out := make(chan int)
 
-    // Start an output goroutine for each input channel in cs.  output
-    // copies values from c to out until c is closed or it receives a value
-    // from done, then output calls wg.Done.
+    // 为 cs 的的每一个 输入channel
+    // 创建一个goroutine。output函数将
+    // 数据从 c 拷贝到 out，直到c关闭，
+    // 或者接收到 done 信号；
+    // 然后调用 wg.Done()
     output := func(c <-chan int) {
         for n := range c {
             select {
@@ -311,23 +315,25 @@ channel 实现，因为`在一个已关闭 channel 上执行接收操作(<-ch)�
 
 ``` golang
 func main() {
-    // Set up a done channel that's shared by the whole pipeline,
-    // and close that channel when this pipeline exits, as a signal
-    // for all the goroutines we started to exit.
+    // 设置一个 全局共享的 done channel，
+    // 当流水线退出时，关闭 done channel
+    // 所有 goroutine接收到 done 的信号后，
+    // 都会正常退出。
     done := make(chan struct{})
     defer close(done)
 
     in := gen(done, 2, 3)
 
-    // Distribute the sq work across two goroutines that both read from in.
+    // 将 sq 的工作分发给两个goroutine
+    // 这两个 goroutine 均从 in 读取数据
     c1 := sq(done, in)
     c2 := sq(done, in)
 
-    // Consume the first value from output.
+    // 消费 outtput 生产的第一个值
     out := merge(done, c1, c2)
     fmt.Println(<-out) // 4 or 9
 
-    // done will be closed by the deferred call.
+    // defer 调用时，done channel 会被关闭。
 }
 ```
 
@@ -339,9 +345,10 @@ func merge(done <-chan struct{}, cs ...<-chan int) <-chan int {
     var wg sync.WaitGroup
     out := make(chan int)
 
-    // Start an output goroutine for each input channel in cs.  output
-    // copies values from c to out until c or done is closed, then calls
-    // wg.Done.
+    // 为 cs 的每一个 channel 创建一个 goroutine
+    // 这个 goroutine 运行 output，它将数据从 c
+    // 拷贝到 out，直到 c 关闭，或者 接收到 done
+    // 的关闭信号。人啊后调用 wg.Done()
     output := func(c <-chan int) {
         defer wg.Done()
         for n := range c {
