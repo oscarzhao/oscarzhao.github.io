@@ -225,6 +225,8 @@ delete 的执行步骤：
 2. 调用operator delete释放内存 (free)
 
 虽然，new 和 delete 不能被重载，但是 operator new 和 operator delete 可以被重载。
+更多细节查看 [msdn 上的相关页面](https://msdn.microsoft.com/en-us/library/h6227113.aspx "delete")。
+关于重写 operator new/delete的一些原因，参考[Customized Allocators with Operator New and Operator Delete](http://www.cprogramming.com/tutorial/operator_new.html "delete")。
 
 ### 3.2 重载 operator new 和 operator delete
 
@@ -329,3 +331,150 @@ Memory block 1 deallocated
 下面我们看看 类作用域下这四个函数如何实现，应用场景以及注意事项。
 
 在类中重写 operator new/delete([]) 成员函数时，必须声明它们为 static，因此不能声明为虚函数。
+
+下面给出一个重写类 operator new/delete 方法的例子：
+
+``` c++
+// https://msdn.microsoft.com/en-us/library/kftdy56f.aspx
+// spec1_the_operator_new_function1.cpp
+#include <cstddef>
+#include <iostream>
+#include <malloc.h>
+#include <memory.h> 
+
+using namespace std;
+
+class Blanks
+{
+public:
+    Blanks(){ }
+    Blanks(int dummy){ throw 1; }
+
+    static void* operator new( size_t stAllocateBlock );
+    static void* operator new( size_t stAllocateBlock, char chInit );
+    static void* operator new( size_t stAllocateBlock, double dInit );
+    static void operator delete( void* pvMem );
+    static void operator delete( void* pvMem, char chInit);
+    static void operator delete( void* pvMem, double dInit);
+};
+
+void* Blanks::operator new( size_t stAllocateBlock ) {
+    clog << "Blanks::operator new( size_t )\n";
+    void* pvTemp = malloc( stAllocateBlock );
+    return pvTemp;
+}
+
+void* Blanks::operator new( size_t stAllocateBlock, char chInit )
+{
+    clog << "Blanks::operator new( size_t, char )\n";
+    // throw 20;
+    void *pvTemp = malloc( stAllocateBlock );
+    if( pvTemp != 0 )
+        memset( pvTemp, chInit, stAllocateBlock );
+    return pvTemp;
+}
+
+void* Blanks::operator new( size_t stAllocateBlock, double dInit ) {
+    clog << "Blanks::operator new( size_t, double)\n";
+    return malloc(stAllocateBlock);
+}
+
+
+void Blanks::operator delete( void* pvMem ) {
+    clog << "Blanks::opeator delete (void*)\n";
+    free(pvMem);
+}
+
+void Blanks::operator delete( void* pvMem, char chInit ) {
+    clog << "Blanks::opeator delete (void*, char)\n";
+    free(pvMem);
+} 
+
+void Blanks::operator delete( void* pvMem, double dInit ) {
+    clog << "Blanks::opeator delete (void*, double)\n";
+    free(pvMem);
+}
+// For discrete objects of type Blanks, the global operator new function
+// is hidden. Therefore, the following code allocates an object of type
+// Blanks and initializes it to 0xa5
+int main()
+{
+   Blanks *a5 = new('c') Blanks;
+   delete a5;
+   cout << endl;
+   Blanks *a6 = new Blanks;
+   delete a6;
+   cout << endl;
+   Blanks *a7 = new(10.0) Blanks(1);
+   delete a7;
+   cout << endl;
+}
+```
+
+linux运行上的代码，结果如下：
+
+```
+Blanks::operator new( size_t, char )
+Blanks::opeator delete (void*)
+
+Blanks::operator new( size_t )
+Blanks::opeator delete (void*)
+
+Blanks::operator new( size_t, double)
+terminate called after throwing an instance of 'int'
+Aborted (core dumped)
+```
+
+很容易发现，不管我们使用哪个版本的 operator new，最后调用的都是 不含额外的参数的 operator delete。 
+构造函数抛出异常时，也没有调用对应的 operator delete 成员函数。
+那么包含额外参数的 delete什么时候会被调用到，应用场景由有哪些呢？
+
+我们继续找相关的文档，[msdn]()上有这样一段文字：
+
+``` c++
+void operator delete( void * );
+void operator delete( void *, size_t );
+```
+
+*Only one of the preceding two forms can be present for a given class. The first form takes a single argument of type void *, which contains a pointer to the object to deallocate. The second form—sized deallocation—takes two arguments, the first of which is a pointer to the memory block to deallocate and the second of which is the number of bytes to deallocate. The return type of both forms is void (operator delete cannot return a value).*
+
+*The intent of the second form is to speed up searching for the correct size category of the object to be deleted, which is often not stored near the allocation itself and likely uncached; the second form is particularly useful when an operator delete function from a base class is used to delete an object of a derived class.*
+
+这里的解释也有些问题，通过上面的例子，可以推断 operator new/delete 均可以被重载。
+创建对象时，可以使用不同版本的operator new，但是销毁时，只调用不包含额外参数的operator delete。
+delete 的应用场景之一是：在继承体系中，Base* 指向一个子类对象，调用 delete 销毁该对象时，必须保证销毁父类对象，而不是根据子类对象的大小进行截断销毁。
+
+事实上，上面所说的应用场景也没有得到验证。我对上面的代码进行了修改，销毁时调用的仍然是不含额外参数的 delete:
+
+``` c++
+// https://msdn.microsoft.com/en-us/library/kftdy56f.aspx
+// spec1_the_operator_new_function1.cpp
+#include <cstddef>
+#include <iostream>
+#include <malloc.h>
+#include <memory.h> 
+
+using namespace std;
+
+class Base {
+public:
+    virtual ~Base() {}
+};
+
+class Blanks: public Base
+{
+  // ...   没有改变 ...
+};
+
+int main() {
+   Base *a5 = new('c') Blanks;   // 打印 Blanks::operator new( size_t, char )
+   delete a5;                    // 打印 Blanks::opeator delete (void*)
+}
+
+```
+
+根据侯捷老师关于 basic_string 的分析，operator delete 并没有传入额外的参数，而是通过 Allocator::deallocate 去删除。
+因此 重载 operator delete 没有任何意义，需要时 重新定义 operator delete(void* p)即可。
+需要查看 stl 文章和源码的话，可以去 [Code Project](http://www.codeproject.com/KB/stl/ "stl") 和 [sgi](https://www.sgi.com/tech/stl/download.html "sgi") 网站上查看。
+
+关于 C++ Object Model的分析就到这里，多谢阅读。
