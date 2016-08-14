@@ -477,4 +477,7 @@ int main() {
 因此 重载 operator delete 没有任何意义，需要时 重新定义 operator delete(void* p)即可。
 需要查看 stl 文章和源码的话，可以去 [Code Project](http://www.codeproject.com/KB/stl/ "stl") 和 [sgi](https://www.sgi.com/tech/stl/download.html "sgi") 网站上查看。
 
+注意：为类定义 operator new/delete 成员函数会覆盖 全局默认的 operator new/delete。
+如果要使用默认的 operator new/delete，那么在创建对象和销毁对象时，需要使用 ::new 和 ::delete。
+
 关于 C++ Object Model的分析就到这里，多谢阅读。
