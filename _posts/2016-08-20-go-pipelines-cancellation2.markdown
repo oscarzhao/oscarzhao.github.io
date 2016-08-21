@@ -65,7 +65,7 @@ func main() {
 }
 ``` 
 
-本文中，函数 MD5All 是讨论的焦点。在 [serial.go]()的实现中，我们没有使用并发，而是逐个读取和计算 filepath.Walk 生成的目录和文件。代码如下：
+本文中，函数 MD5All 是讨论的焦点。在 [serial.go](http://oat5ddzns.bkt.clouddn.com/src/piplines/serial.go "serial.go")的实现中，我们没有使用并发，而是逐个读取和计算 filepath.Walk 生成的目录和文件。代码如下：
 
 ```
 // MD5All 读取 root 目录下的所有文件，返回一个map
@@ -170,8 +170,8 @@ MD5All 从 c 接收 md5值。 MD5All 遇到错误时会提前返回，通过 def
 
 ``` golang 
 func MD5All(root string) (map[string][md5.Size]byte, error) {
-    // MD5All closes the done channel when it returns; it may do so before
-    // receiving all the values from c and errc.
+    // MD5All 在函数返回时关闭 done channel
+    // 在从 c 和 errc 接收数据前，也可能关闭
     done := make(chan struct{})
     defer close(done)
 
