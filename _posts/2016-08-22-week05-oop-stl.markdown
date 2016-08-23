@@ -13,6 +13,11 @@ categories: C++
 
 模板允许参数化的类型，它可以根据类型参数生成函数和类。它是对类或函数更高层次的抽象。它可以分为两类：类模板和函数模板。
 类模板根据传入的类型参数定义了一组关联的类；函数模板则定义了针对不同类型或类的一组类似操作。
+
+注意：模板在编译期展开，而非运行时确定参数的具体类型，因此会造成不同程度的代码膨胀。
+STL是基于模板实现的，关于代码膨胀的讨论，可以参考知乎的一篇帖子["为何某些公司不允许使用 C++ STL？"](https://www.zhihu.com/question/20201972 "STL")，
+里面观点各异，自行分辨。
+
 下面我们对类模板和函数模板分别介绍。
 
 ### 1.1 类模板  class template
@@ -129,5 +134,104 @@ PTS<S*>::IsPointer == 1 PTS<S*>::IsPointerToDataMember ==0
 PTS<int S::*>::IsPointer == 0 PTS<int S::*>::IsPointerToDataMember == 1
 ```
 
+msdn 还有三个偏特化的例子，都不错，有兴趣的花，点击["Partial specialization"](https://msdn.microsoft.com/en-us/library/3967w96f.aspx "partial")。 
+
+##### 1.1.4 默认模板参数
+不多说，参考 [msdn 文档](https://msdn.microsoft.com/en-us/library/bys786s7.aspx "default template param")
+
 ### 1.2 函数模板 function template
 
+函数模板，定义了一类行为。和类模板一样，在C++编译出的二进制文件中，不存在函数模板这个概念。
+在编译期，在调用函数模板时，编译器会以某个类型作为参数生成一个特化的函数。
+我们首先看个例子：
+
+``` c++
+// https://msdn.microsoft.com/en-us/library/y2se4kz7.aspx
+// function_templates1.cpp
+template< class T > void MySwap( T& a, T& b ) {
+   T c(a); 
+   a = b; 
+   b = c;
+}
+```
+
+上面这个函数实现了两个变量值的交换（pass by reference）。
+
+## Part 2 偏特化
+
+有时候，模板并不能满足所有特化类型的需求，所以需要针对某些类型指定特化版本。
+在标准库中，典型的偏特化有std::vector 和 [std::vector<bool>](http://www.cplusplus.com/reference/vector/ "vector")。
+
+我们再举一个例子，如果我们想覆盖上面 MySwap 针对 double 的特化函数，则可以像下面这样定义一个函数：
+
+``` c++
+template<> void MySwap(double a, double b);
+```
+
+当一个函数调用匹配多个模板实例时，编译器会选择一个最佳匹配。如何去选择，下面我们讨论下这个主题。
+
+### 2.1 函数模板的偏序 (partial ordering)
+
+这部分内容的理解均来自于 [msdn](https://msdn.microsoft.com/en-us/library/zaycz069.aspx "partial orderding")
+
+这里我只取一部分自认为比较重要规则放到这里：
+
+1. A template specialization for a specific type is more specialized than one taking a generic type argument.
+2. A template taking only T* is more specialized than one taking only T, because a hypothetical type X* is a valid argument for a T template argument, but X is not a valid argument for a T* template argument.
+3. const T is more specialized than T, because const X is a valid argument for a T template argument, but X is not a valid argument for a const T template argument.
+4. const T* is more specialized than T*, because const X* is a valid argument for a T* template argument, but X* is not a valid argument for a const T* template argument.
+
+下面这个例子也是从msdn上拷贝过来的，比较能体现 一般类型、指针特化、const 指针特化 的偏序：
+
+``` c++
+// partial_ordering_of_function_templates.cpp
+// compile with: /EHsc
+#include <iostream>
+
+extern "C" int printf(const char*,...);
+template <class T> void f(T) {
+   printf_s("Less specialized function called\n");
+}
+
+template <class T> void f(T*) {
+   printf_s("More specialized function called\n");
+}
+
+template <class T> void f(const T*) {
+   printf_s("Even more specialized function for const T*\n");
+}
+
+int main() {
+   int i =0;
+   const int j = 0;
+   int *pi = &i;
+   const int *cpi = &j;
+
+   f(i);   // Calls less specialized function.
+   f(pi);  // Calls more specialized function.
+   f(cpi); // Calls even more specialized function.
+   // Without partial ordering, these calls would be ambiguous.
+}
+```
+
+上面这段代码会打印出：
+
+```
+Less specialized function called
+More specialized function called
+Even more specialized function for const T*
+```
+
+### Part 3 STL 库的容器（类模板）
+
+标准库中包含了不少优秀的类模板和函数模板，本文中列出一部分常用的容器：
+
+1. [std::vector](http://www.cplusplus.com/reference/vector/ "vector")
+2. [std::deque](http://www.cplusplus.com/reference/deque/ "deque")
+3. [std::list](http://www.cplusplus.com/reference/list/ "list")
+4. [std::stack](http://www.cplusplus.com/reference/stack/ "stack")
+5. [std::queue](http://www.cplusplus.com/reference/queue/ "queue")
+6. [std::map & std::multimap](http://www.cplusplus.com/reference/map/ "map")
+7. [std::set & std::mutliset](http://www.cplusplus.com/reference/set/ "set")
+
+关于这些容器的用户，上面已经给出了链接，需要的时候查文档即可。
