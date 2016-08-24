@@ -234,4 +234,4 @@ Even more specialized function for const T*
 6. [std::map & std::multimap](http://www.cplusplus.com/reference/map/ "map")
 7. [std::set & std::mutliset](http://www.cplusplus.com/reference/set/ "set")
 
-关于这些容器的用户，上面已经给出了链接，需要的时候查文档即可。
+关于这些容器的用法，上面已经给出了链接，需要的时候查文档即可。

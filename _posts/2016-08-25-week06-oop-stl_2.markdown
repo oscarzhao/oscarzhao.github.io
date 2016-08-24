@@ -1,0 +1,112 @@
+---
+layout: post
+title:  "C++模板与STL (二)（geekband)"
+date:   2016-08-25 11:59:00 +0800
+categories: C++
+---
+
+*这是C++语言的一系列文章，内容取自于网易微专业《C++开发工程师（升级版）》。*
+
+*本文的主题是 模板基本概念与STL容器简介。*
+
+## Part 1：模板简介
+
+
+## Part 2: 一些特殊的辅助函数
+
+### 2.1 bind
+binder1st 和 binder2nd 已经被抛弃，C++11以后全面采用bind。bind的作用是根据一个函数对象生成一个新的函数对象，
+新的函数对象与原函数对象具有同样的返回值，但是一般情况下接收较少的参数。
+
+具体的使用方法，我们看一个例子：
+
+``` c++
+// source: http://www.cplusplus.com/reference/functional/bind/
+// 增加了 my_add_three 和 my_add_four 两个例子，说明它可以接收不仅仅两个参数，而是任意个。
+// 具体能支持多少个，和 std::placeholders 下的 占位符个数有关。
+// bind example
+#include <iostream>     // std::cout
+#include <functional>   // std::bind
+
+// a function: (also works with function object: std::divides<double> my_divide;)
+double my_divide (double a, double b) {return a/b;}
+double my_add_three(double a, double b, double c) {return a + b + c;}
+double my_add_four(double a, double b, double c, double d) { return a + b + c + d; }
+
+struct MyPair {
+  double a,b;
+  double multiply() {return a*b;}
+};
+
+int main () {
+  using namespace std::placeholders;    // adds visibility of _1, _2, _3,...
+
+  // binding functions:
+  auto fn_five = std::bind (my_divide,10,2);               // returns 10/2
+  std::cout << fn_five() << '\n';                          // 5
+
+  auto fn_half = std::bind (my_divide,_1,2);               // returns a/2
+  std::cout << fn_half(10) << '\n';                        // 5
+
+  auto fn_invert = std::bind (my_divide,_2,_1);            // returns b/a
+  std::cout << fn_invert(10,2) << '\n';                    // 0.2
+
+  auto fn_rounding = std::bind<int> (my_divide,_1,_2);     // returns int(a/b)
+  std::cout << fn_rounding(10,3) << '\n';                  // 3
+
+  auto fn_add_two = std::bind<double>(my_add_three, _1, _2, 3); // returns a+b+3
+  std::cout << fn_add_two(1, 2) << '\n';                        // 6
+
+  auto fn_add_three = std::bind<double>(my_add_three, _1, _2, _3); // returns a+b+c
+  std::cout << fn_add_three(1, 2, 3) << '\n';                      // 6
+
+  auto fn_add_three_2 = std::bind<double>(my_add_four, _1, _2, _3, 0); // return a+b+c+0
+  std::cout << fn_add_three_2(1, 2, 3) << '\n';                        // 6
+
+  MyPair ten_two {10,2};
+
+  // binding members:
+  auto bound_member_fn = std::bind (&MyPair::multiply,_1); // returns x.multiply()
+  std::cout << bound_member_fn(ten_two) << '\n';           // 20
+
+  auto bound_member_data = std::bind (&MyPair::a,ten_two); // returns ten_two.a
+  std::cout << bound_member_data() << '\n';                // 10
+
+  return 0;
+}
+```
+
+### 2.2 mem_fn
+
+mem_fn 会根据一个类的成员函数生成一个函数对象，该函数对象的第一个参数必须是类的一个实例（object），
+后面的参数与 原成员函数一致。使用方法看下面这个例子：
+
+``` c++
+// source: http://www.cplusplus.com/reference/functional/mem_fn/
+// 为了更好地展现其用法，增加了 成员函数 add
+// mem_fn example
+#include <iostream>     // std::cout
+#include <functional>   // std::mem_fn
+
+struct int_holder {
+  int value;
+  int triple() {return value*3;}
+  int add(int x, int y) {return x+y; }
+};
+
+int main () {
+  int_holder five {5};
+
+  // call member directly:
+  std::cout << five.triple() << '\n';
+
+  // same as above using a mem_fn:
+  auto triple = std::mem_fn (&int_holder::triple);
+  std::cout << triple(five) << '\n';  // 函数对象 triple 接受一个参数
+
+  auto add = std::mem_fn (&int_holder::add);
+  std::cout << add(five, 1, 2) << std::endl;  // 函数对象 add 接受三个参数
+
+  return 0;
+}
+```
