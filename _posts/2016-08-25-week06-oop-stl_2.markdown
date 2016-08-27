@@ -9,7 +9,11 @@ categories: C++
 
 *本文的主题是 模板基本概念与STL容器简介。*
 
-## Part 1：模板简介
+## Part 1：traits
+
+C++ STL中内置了很多类型模板，可以通过 `#include<type_traits>` 语法引入。`type_traits` 包含了
+一系列模板类，它们可以为类型参数提供编译期常量或用于类型转换。在 [cplusplus.com/reference/type_traits](http://www.cplusplus.com/reference/type_traits/ "traits")
+上，列举了 STL 内置的 `type_traits`，有兴趣的童鞋可以自己去查看。
 
 
 ## Part 2: 一些特殊的辅助函数
