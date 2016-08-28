@@ -360,6 +360,8 @@ func httpDo(ctx context.Context, req *http.Request, f func(*http.Response, error
 1. [原文链接](https://blog.golang.org/context "context")
 2. [代码位置](https://blog.golang.org/context/ “context")
 3. [代码位置(mirror)](https://github.com/oscarzhao/golang/tree/master/go_blog "context")
+4. [mirror of package net](https://github.com/golang/net "golang.org/x/net")
+5. [Google Web Search API](https://developers.google.com/web-search/docs/ "google")
 
 扫码关注微信公众号“深入Go语言”
 
