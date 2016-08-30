@@ -116,13 +116,31 @@ int main () {
 ```
 
 ## Part 3 泛型算法
-### 2.1 非变易算法 
+STL中所有算法均可以在 [cplusplus.com/reference/algorithm](http://www.cplusplus.com/reference/algorithm/ "algorithm") 上看到。
+
+### 2.1 非变易算法 Non-modifying sequence operations
 非变易算法的特征是 算法不会改变容器中的对象。常见的例子有
 
 1. [std::for_each](http://www.cplusplus.com/reference/algorithm/for_each/ "for_each")
 2. [std::find](http://www.cplusplus.com/reference/algorithm/find/ "find")
-3. [std::find_if](http://www.cplusplus.com/reference/algorithm/find_if/ "find_if") 
+3. [std::find_if](http://www.cplusplus.com/reference/algorithm/find_if/ "find_if")
+4. [std::adjacent_find](http://www.cplusplus.com/reference/algorithm/adjacent_find/ "adjacent_find")
+5. [std::find_first_of](http://www.cplusplus.com/reference/algorithm/find_first_of/ "find_first_of")
+6. [std::count](http://www.cplusplus.com/reference/algorithm/count/ "count")
+7. [std::count_if](http://www.cplusplus.com/reference/algorithm/count_if/ "count_if")
+8. [std::mismatch](http://www.cplusplus.com/reference/algorithm/mismatch/ "mismatch")
+9. [std::equal](http://www.cplusplus.com/reference/algorithm/equal/ "equal")
+10. [...]((http://www.cplusplus.com/reference/algorithm/ "algorithm")
 
-### 2.2 排序
+这些算法的复杂度均为线性复杂度，即 O(n)。完整的列表非变易算法列表查看[这里](http://www.cplusplus.com/reference/algorithm/ "algorithm")。 
+需要的时候查手册即可。
 
-### 2.3 数值算法
+### 2.2 变易算法  Modifying sequence operations
+变易算法的特征是 算法会修改容器中的对象。常见的例子有：
+
+1. [std::copy](http://www.cplusplus.com/reference/algorithm/copy/ "copy")
+2. [std::swap](http://www.cplusplus.com/reference/algorithm/swap/ "swap")
+3. [std::transform](http://www.cplusplus.com/reference/algorithm/transform/ "transform")
+4. [...and so on...](http://www.cplusplus.com/reference/algorithm/ "algorithm")
+
+关于 stl 的仿函数就介绍到这里，后续我们会介绍更多的仿函数。

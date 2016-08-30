@@ -14,7 +14,7 @@ categories: Golang
 goroutine 都应该迅速退出，然后系统才能释放这些 goroutine 占用的资源。
 
 在Google 内部，我们开发了 `Context` 包，专门用来简化 对于处理单个请求的多个 goroutine 之间与
-请求域的数据、取消信号、截止时间等相关操作，这些操作可能跨越多个 API 边界。
+请求域的数据、取消信号、截止时间等相关操作，这些操作可能涉及多个 API 调用。
 你可以通过 `go get golang.org/x/net/context` 命令获取这个包。本文要讲的就是如果使用
 这个包，同时也会提供一个完整的例子。 
 
