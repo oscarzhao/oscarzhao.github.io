@@ -130,7 +130,7 @@ STL中所有算法均可以在 [cplusplus.com/reference/algorithm](http://www.cp
 7. [std::count_if](http://www.cplusplus.com/reference/algorithm/count_if/ "count_if")
 8. [std::mismatch](http://www.cplusplus.com/reference/algorithm/mismatch/ "mismatch")
 9. [std::equal](http://www.cplusplus.com/reference/algorithm/equal/ "equal")
-10. [...]((http://www.cplusplus.com/reference/algorithm/ "algorithm")
+10. [...and so on...](http://www.cplusplus.com/reference/algorithm/ "algorithm")
 
 这些算法的复杂度均为线性复杂度，即 O(n)。完整的列表非变易算法列表查看[这里](http://www.cplusplus.com/reference/algorithm/ "algorithm")。 
 需要的时候查手册即可。
