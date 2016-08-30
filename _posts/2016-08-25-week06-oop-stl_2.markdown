@@ -118,7 +118,7 @@ int main () {
 ## Part 3 泛型算法
 STL中所有算法均可以在 [cplusplus.com/reference/algorithm](http://www.cplusplus.com/reference/algorithm/ "algorithm") 上看到。
 
-### 2.1 非变易算法 Non-modifying sequence operations
+### 3.1 非变易算法 Non-modifying sequence operations
 非变易算法的特征是 算法不会改变容器中的对象。常见的例子有
 
 1. [std::for_each](http://www.cplusplus.com/reference/algorithm/for_each/ "for_each")
@@ -135,7 +135,7 @@ STL中所有算法均可以在 [cplusplus.com/reference/algorithm](http://www.cp
 这些算法的复杂度均为线性复杂度，即 O(n)。完整的列表非变易算法列表查看[这里](http://www.cplusplus.com/reference/algorithm/ "algorithm")。 
 需要的时候查手册即可。
 
-### 2.2 变易算法  Modifying sequence operations
+### 3.2 变易算法  Modifying sequence operations
 变易算法的特征是 算法会修改容器中的对象。常见的例子有：
 
 1. [std::copy](http://www.cplusplus.com/reference/algorithm/copy/ "copy")
