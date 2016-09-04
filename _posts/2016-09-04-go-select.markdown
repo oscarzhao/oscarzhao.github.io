@@ -175,7 +175,8 @@ case <-quit:
 Google Search 是一个很经典的例子，由于代码较多，有兴趣的童鞋查看 [Rob Pike 的 ppt](https://talks.golang.org/2012/concurrency.slide#42 "google search")。
 更高阶的并发方式可以阅读 Sameer Ajmani 的 ppt [Advanced Go Concurrency Patterns](https://talks.golang.org/2013/advconc.slide "concurrency")
 
-并发相关的主题就先到这里，下一期我们的主题是 测试 (testing)。
+并发相关的主题就先到这里，下一期文章中，我们会讨论go语言测试工具链中的单元测试。
+
 ### 相关链接：
 
 1. [Rob Pike演讲：concurrency](https://talks.golang.org/2012/concurrency.slide#31 "select")
