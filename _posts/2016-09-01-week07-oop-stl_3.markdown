@@ -48,7 +48,52 @@ merge 这类函数实现 两个容器数据的合并，在大学数据结构中�
 
 ### 1.4 Heap 堆
 
-[more](http://www.cplusplus.com/reference/algorithm/ "more")
+堆，又叫优先队列 (priority queue)。典型的堆是一个完全二叉树，底层可以通过数组实现，push操作的算法复杂度为 O(logN), pop 操作的复杂度也是 O(logN)。
+具体的实现参考《数据结构与算法分析－C语言描述》第六章 优先队列(堆)。 这里我们通过 cplusplus.com 上的一个例子来看下它的使用方法：
+
+``` c++
+// http://www.cplusplus.com/reference/algorithm/pop_heap/
+// range heap example
+#include <iostream>     // std::cout
+#include <algorithm>    // std::make_heap, std::pop_heap, std::push_heap, std::sort_heap
+#include <vector>       // std::vector
+
+int main () {
+  int myints[] = {10,20,30,5,15};
+  std::vector<int> v(myints,myints+5);
+
+  std::make_heap (v.begin(),v.end());
+  std::cout << "initial max heap   : " << v.front() << '\n';
+
+  std::pop_heap (v.begin(),v.end()); v.pop_back();
+  std::cout << "max heap after pop : " << v.front() << '\n';
+
+  v.push_back(99); std::push_heap (v.begin(),v.end());
+  std::cout << "max heap after push: " << v.front() << '\n';
+
+  std::sort_heap (v.begin(),v.end());
+
+  std::cout << "final sorted range :";
+  for (unsigned i=0; i<v.size(); i++)
+    std::cout << ' ' << v[i];
+
+  std::cout << '\n';
+
+  return 0;
+}
+```
+
+这段代码的输出是：
+
+``` 
+initial max heap   : 30
+max heap after pop : 20
+max heap after push: 99
+final sorted range : 5 10 15 20 99
+```
+
+我们很容易发现，STL中并没有一个叫 堆的容器（数据结构），而是只有与堆相关的操作。堆数据存储在一个 vector 中，
+但是表示的一个满二叉树的逻辑结构，有兴趣的朋友可以查阅一下上面提到的算法书。
 
 ## Part 2: Allocator 分配器
 
