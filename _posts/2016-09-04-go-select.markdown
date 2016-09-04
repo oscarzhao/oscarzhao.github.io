@@ -80,7 +80,7 @@ for {  // 向 channel c 发送随机 bit 串
 select {}  // 永久阻塞
 ```
 
-注意：与 C/C++ 等传统编程语言不同，go语言的 case 语句不需要 break 关键字去跳出 select (switch)。
+注意：与 C/C++ 等传统编程语言不同，go语言的 case 语句不需要 break 关键字去跳出 select。
 
 ## select 的使用
 
@@ -172,8 +172,10 @@ case <-quit:
 ```
 
 ### Google Search (延伸阅读)
-Google Search 是一个很经典的例子，不看真的会后悔。由于代码较多，有兴趣的童鞋查看 [Rob Pike 的 ppt](https://talks.golang.org/2012/concurrency.slide#42 "google search")。
+Google Search 是一个很经典的例子，由于代码较多，有兴趣的童鞋查看 [Rob Pike 的 ppt](https://talks.golang.org/2012/concurrency.slide#42 "google search")。
+更高阶的并发方式可以阅读 Sameer Ajmani 的 ppt [Advanced Go Concurrency Patterns](https://talks.golang.org/2013/advconc.slide "concurrency")
 
+并发相关的主题就先到这里，下一期我们的主题是 测试 (testing)。
 ### 相关链接：
 
 1. [Rob Pike演讲：concurrency](https://talks.golang.org/2012/concurrency.slide#31 "select")
