@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Go语言并发模型：使用 select"
-date:   2016-09-24 11:59:00 +0800
+date:   2016-09-04 11:59:00 +0800
 categories: Golang
 ---
 
