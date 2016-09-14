@@ -49,32 +49,32 @@ ios开发、前端开发，我们都已经有非常成熟的框架，所以培�
 // Open-Close Principle - Bad example
 class GraphicEditor {
 public: 
-	void drawShape(Shape s) {
-		if (s.m_type==1)
-			drawRectangle(s);
-		else if (s.m_type==2)
-			drawCircle(s);
-	}
-	void drawCircle(Circle r) {....}
-	void drawRectangle(Rectangle r) {....}
+  void drawShape(Shape s) {
+    if (s.m_type==1)
+      drawRectangle(s);
+    else if (s.m_type==2)
+      drawCircle(s);
+  }
+  void drawCircle(Circle r) {....}
+  void drawRectangle(Rectangle r) {....}
 }
 
 class Shape {
-	int m_type;
+  int m_type;
 };
 
 class Rectangle extends Shape {
 public:
-	Rectangle() {
-		super.m_type=1;
-	}
+  Rectangle() {
+    super.m_type=1;
+  }
 };
 
 class Circle extends Shape {
 public:
-	Circle() {
-		super.m_type=2;
-	}
+  Circle() {
+    super.m_type=2;
+  }
 };
 ```
 
@@ -84,19 +84,19 @@ public:
 ``` c++
 // Open-Close Principle - Good example
  class GraphicEditor {
- 	public void drawShape(Shape s) {
- 		s.draw();
- 	}
+   public void drawShape(Shape s) {
+     s.draw();
+   }
  }
  
  class Shape {
- 	abstract void draw();
+   abstract void draw();
  }
  
  class Rectangle extends Shape  {
- 	public void draw() {
- 		// draw the rectangle
- 	}
+   public void draw() {
+     // draw the rectangle
+   }
  } 
 ```
 
@@ -125,25 +125,25 @@ public:
 ``` c++
 // Dependency Inversion Principle - Bad example
 class Worker {
-	public void work() {
-		// ....working
-	}
+  public void work() {
+    // ....working
+  }
 };
 
 class Manager {
-	Worker worker;
-	public void setWorker(Worker w) {
-		worker = w;
-	}
-	public void manage() {
-		worker.work();
-	}
+  Worker worker;
+  public void setWorker(Worker w) {
+    worker = w;
+  }
+  public void manage() {
+    worker.work();
+  }
 };
 
 class SuperWorker {
-	public void work() {
-		//.... working much more
-	}
+  public void work() {
+    //.... working much more
+  }
 };
 ```
 
@@ -159,34 +159,34 @@ class SuperWorker {
 // Dependency Inversion Principle - Good example
 class IWorker {
 public:
-	void work();
+  void work();
 }
 
 class Worker : public  IWorker{
 public:
-	virtual void work() {
-		// ....working
-	}
+  virtual void work() {
+    // ....working
+  }
 };
 
 class SuperWorker  : public  IWorker{
 public: 
 virtual void work() {
-		//.... working much more
-	}
+    //.... working much more
+  }
 };
 
 class Manager {
-	IWorker worker;
+  IWorker worker;
 
 public: 
-	void setWorker(IWorker w) {
-		worker = w;
-	}
+  void setWorker(IWorker w) {
+    worker = w;
+  }
 
-	void manage() {
-		worker.work();
-	}
+  void manage() {
+    worker.work();
+  }
 };
 ```
 
@@ -210,42 +210,42 @@ Manager 类依赖抽象接口，而不是低层的具体实现以后，有三个
 // interface segregation principle - bad example
 class IWorker {
 public: 
-	virtual void work();
-	virtual void eat();
+  virtual void work();
+  virtual void eat();
 };
 
 class Worker : public IWorker{
 public:
-	virtual void work() {
-		// ....working
-	}
-	virtual void eat() {
-		// ...... eating in launch break
-	}
+  virtual void work() {
+    // ....working
+  }
+  virtual void eat() {
+    // ...... eating in launch break
+  }
 };
 
 class SuperWorker : public IWorker{
 public: 
-	virtual void work() {
-		//.... working much more
-	}
+  virtual void work() {
+    //.... working much more
+  }
 
-	public void eat() {
-		//.... eating in launch break
-	}
+  public void eat() {
+    //.... eating in launch break
+  }
 };
 
 class Manager {
-	IWorker worker;
+  IWorker worker;
 
 public:
-	void setWorker(IWorker w) {
-		worker=w;
-	}
+  void setWorker(IWorker w) {
+    worker=w;
+  }
 
-	void manage() {
-		worker.work();
-	}
+  void manage() {
+    worker.work();
+  }
 };
 ```
 
@@ -263,12 +263,12 @@ public:
 // interface segregation principle - good example
 class IWorkable {
 public: 
-	virtual void work() = 0;
+  virtual void work() = 0;
 };
 
 class IFeedable{
 public:
-	virtual void eat() = 0;
+  virtual void eat() = 0;
 };
 
 class IWorker : public Feedable, public Workable {
@@ -276,44 +276,44 @@ class IWorker : public Feedable, public Workable {
 
 class Worker : public IWorkable, public IFeedable{
 public: 
-	virtual void work() {
-		// ....working
-	}
+  virtual void work() {
+    // ....working
+  }
 
-	virtual void eat() {
-		//.... eating in launch break
-	}
+  virtual void eat() {
+    //.... eating in launch break
+  }
 }
 
 class Robot : public IWorkable{
 public:
-	 virtual void work() {
-		// ....working
-	}
+   virtual void work() {
+    // ....working
+  }
 }
 
 class SuperWorker : public IWorkable, public IFeedable{
 public: 
-	virtual void work() {
-		//.... working much more
-	}
+  virtual void work() {
+    //.... working much more
+  }
 
-	virtual void eat() {
-		//.... eating in launch break
-	}
+  virtual void eat() {
+    //.... eating in launch break
+  }
 };
 
 class Manager {
-	Workable worker;
+  Workable worker;
 
 public:
-	 void setWorker(Workable w) {
-		worker=w;
-	}
+  void setWorker(Workable w) {
+    worker=w;
+  }
 
-	void manage() {
-		worker.work();
-	}
+  void manage() {
+    worker.work();
+  }
 }
 ```
 
