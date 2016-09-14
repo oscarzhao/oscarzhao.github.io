@@ -47,33 +47,35 @@ ios开发、前端开发，我们都已经有非常成熟的框架，所以培�
 
 ``` c++
 // Open-Close Principle - Bad example
- class GraphicEditor {
- 
- 	public void drawShape(Shape s) {
- 		if (s.m_type==1)
- 			drawRectangle(s);
- 		else if (s.m_type==2)
- 			drawCircle(s);
- 	}
- 	public void drawCircle(Circle r) {....}
- 	public void drawRectangle(Rectangle r) {....}
- }
- 
- class Shape {
- 	int m_type;
- }
- 
- class Rectangle extends Shape {
- 	Rectangle() {
- 		super.m_type=1;
- 	}
- }
- 
- class Circle extends Shape {
- 	Circle() {
- 		super.m_type=2;
- 	}
- } 
+class GraphicEditor {
+public: 
+	void drawShape(Shape s) {
+		if (s.m_type==1)
+			drawRectangle(s);
+		else if (s.m_type==2)
+			drawCircle(s);
+	}
+	void drawCircle(Circle r) {....}
+	void drawRectangle(Rectangle r) {....}
+}
+
+class Shape {
+	int m_type;
+};
+
+class Rectangle extends Shape {
+public:
+	Rectangle() {
+		super.m_type=1;
+	}
+};
+
+class Circle extends Shape {
+public:
+	Circle() {
+		super.m_type=2;
+	}
+};
 ```
 
 注意：这里我们使用 drawCircle 和 drawRectangle 两个函数分别画 圆形和矩形。如果将来要画三角形，我们要对代码进行**修改**，违背了开放关闭原则。
@@ -155,33 +157,37 @@ class SuperWorker {
 
 ``` c++
 // Dependency Inversion Principle - Good example
-interface IWorker {
-	public void work();
+class IWorker {
+public:
+	void work();
 }
 
-class Worker implements IWorker{
-	public void work() {
+class Worker : public  IWorker{
+public:
+	virtual void work() {
 		// ....working
 	}
-}
+};
 
-class SuperWorker  implements IWorker{
-	public void work() {
+class SuperWorker  : public  IWorker{
+public: 
+virtual void work() {
 		//.... working much more
 	}
-}
+};
 
 class Manager {
 	IWorker worker;
 
-	public void setWorker(IWorker w) {
+public: 
+	void setWorker(IWorker w) {
 		worker = w;
 	}
 
-	public void manage() {
+	void manage() {
 		worker.work();
 	}
-}
+};
 ```
 
 Manager 类依赖抽象接口，而不是低层的具体实现以后，有三个优点：
@@ -194,7 +200,128 @@ Manager 类依赖抽象接口，而不是低层的具体实现以后，有三个
 ### 3、Interface Segregation Principle 接口分离原则
 *参考链接： http://www.oodesign.com/interface-segregation-principle.html*
 
-未完待续（请耐心等待）
+我们在设计软件时，通常需要考虑如何对一个包括多个子模块的大模块进行抽象，以便将来的扩展。
+如果一个大模块包含多个子模块，这个模块的接口很可能被污染。这里“污染”是指当一个新的类继承该
+接口时，接口的部分函数对子类没有意义，或者不能满足子类的需求。
+
+我们用一个例子来说明一个接口是如何被污染的。这里仍然以 Manager 和 Worker 类为例：
+
+``` c++
+// interface segregation principle - bad example
+class IWorker {
+public: 
+	virtual void work();
+	virtual void eat();
+};
+
+class Worker : public IWorker{
+public:
+	virtual void work() {
+		// ....working
+	}
+	virtual void eat() {
+		// ...... eating in launch break
+	}
+};
+
+class SuperWorker : public IWorker{
+public: 
+	virtual void work() {
+		//.... working much more
+	}
+
+	public void eat() {
+		//.... eating in launch break
+	}
+};
+
+class Manager {
+	IWorker worker;
+
+public:
+	void setWorker(IWorker w) {
+		worker=w;
+	}
+
+	void manage() {
+		worker.work();
+	}
+};
+```
+
+对于上面的代码，现在我们要添加一个 Robot 类，它能工作（work），但不需要进食（eat）。
+按照正常的思路，Robot 应该继承 IWorker，并由 Manager 类统一管理。
+
+注意，Robot 不需要 eat，但继承了 IWorker 以后，不得不实现一个 eat，即便 eat 什么也没做。
+这样会带来一些副作用，比如 Manager 中管理饮食的方法会得出一个违背常识的结果：吃的饭比人多（机器人不算人）。
+
+这里我们引入 接口分离原则的一个预期目标：**client端（使用端）不应该依赖于它不使用的接口**。
+
+对于上面的问题，我们的解决方式是：将 IWorker 接口一分为二。具体实现如下：
+
+``` c++
+// interface segregation principle - good example
+class IWorkable {
+public: 
+	virtual void work() = 0;
+};
+
+class IFeedable{
+public:
+	virtual void eat() = 0;
+};
+
+class IWorker : public Feedable, public Workable {
+};
+
+class Worker : public IWorkable, public IFeedable{
+public: 
+	virtual void work() {
+		// ....working
+	}
+
+	virtual void eat() {
+		//.... eating in launch break
+	}
+}
+
+class Robot : public IWorkable{
+public:
+	 virtual void work() {
+		// ....working
+	}
+}
+
+class SuperWorker : public IWorkable, public IFeedable{
+public: 
+	virtual void work() {
+		//.... working much more
+	}
+
+	virtual void eat() {
+		//.... eating in launch break
+	}
+};
+
+class Manager {
+	Workable worker;
+
+public:
+	 void setWorker(Workable w) {
+		worker=w;
+	}
+
+	void manage() {
+		worker.work();
+	}
+}
+```
+
+为了灵活和扩展性，我们采用小而美的接口（功能恰到好处），而不是大而全的接口（只用到其中一部分）。
+关于这一点，[worse is better](https://www.jwz.org/doc/worse-is-better.html "worse better") 的概念有着异曲同工
+之妙。C++是一个大而全的编程语言，绝大多数人只是用了它的一个子集；Go语言是一个语法非常简单的语言，但有着良好的抽象。
+从软件工程的角度来讲，Go 语言非常优秀，语法简单，也没有歧义。自身库在接口的定义上遵循了小而美的原则（io.Reader, io.Writer 等等），
+接口类型 (interface，go语言专业名词) 支持高层次的抽象，将接口分离原则运用到了极致。
 
 ### 4、Single Responsibility Principle 单一职责原则
 *参考链接： http://www.oodesign.com/single-responsibility-principle.html*
