@@ -63,14 +63,14 @@ class Shape {
   int m_type;
 };
 
-class Rectangle extends Shape {
+class Rectangle : public Shape {
 public:
   Rectangle() {
     super.m_type=1;
   }
 };
 
-class Circle extends Shape {
+class Circle : public Shape {
 public:
   Circle() {
     super.m_type=2;
@@ -93,7 +93,7 @@ public:
    abstract void draw();
  }
  
- class Rectangle extends Shape  {
+ class Rectangle : public  Shape  {
    public void draw() {
      // draw the rectangle
    }
