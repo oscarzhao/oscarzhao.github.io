@@ -197,8 +197,8 @@ Manager 类依赖抽象接口，而不是低层的具体实现以后，有三个
 3. 不需要为 Manager 类重写单元测试
 
 
-### 3、Interface Segregation Principle 接口分离原则
-*参考链接： http://www.oodesign.com/interface-segregation-principle.html*
+### 3、class Segregation Principle 接口分离原则
+*参考链接： http://www.oodesign.com/class-segregation-principle.html*
 
 我们在设计软件时，通常需要考虑如何对一个包括多个子模块的大模块进行抽象，以便将来的扩展。
 如果一个大模块包含多个子模块，这个模块的接口很可能被污染。这里“污染”是指当一个新的类继承该
@@ -207,7 +207,7 @@ Manager 类依赖抽象接口，而不是低层的具体实现以后，有三个
 我们用一个例子来说明一个接口是如何被污染的。这里仍然以 Manager 和 Worker 类为例：
 
 ``` c++
-// interface segregation principle - bad example
+// class segregation principle - bad example
 class IWorker {
 public: 
   virtual void work();
@@ -260,7 +260,7 @@ public:
 对于上面的问题，我们的解决方式是：将 IWorker 接口一分为二。具体实现如下：
 
 ``` c++
-// interface segregation principle - good example
+// class segregation principle - good example
 class IWorkable {
 public: 
   virtual void work() = 0;
@@ -321,14 +321,125 @@ public:
 关于这一点，[worse is better](https://www.jwz.org/doc/worse-is-better.html "worse better") 的概念有着异曲同工
 之妙。C++是一个大而全的编程语言，绝大多数人只是用了它的一个子集；Go语言是一个语法非常简单的语言，但有着良好的抽象。
 从软件工程的角度来讲，Go 语言非常优秀，语法简单，也没有歧义。自身库在接口的定义上遵循了小而美的原则（io.Reader, io.Writer 等等），
-接口类型 (interface，go语言专业名词) 支持高层次的抽象，将接口分离原则运用到了极致。
+接口类型 (class，go语言专业名词) 支持高层次的抽象，将接口分离原则运用到了极致。
 
 ### 4、Single Responsibility Principle 单一职责原则
 *参考链接： http://www.oodesign.com/single-responsibility-principle.html*
 
-未完待续（请耐心等待）
+首先我们回顾一下设计原则和设计模式的一个目标：更从容地应对变化。回到单一职责原则上，这里一个职责对应一个变化的原因，映射到代码中的一个 class。
+反过来，如果我们有两个原因（或更多）去改变一个类，那么我们就要把这个类拆分成两个（多个）。
+
+我们先看一个例子。假设我们需要一个对象保存 Email 信息，我们使用下面的 IEmail 定义的接口，使用 Email 类的实例存储和管理邮件，
+我们仔细看一下，会发现 IEmail 有两个变化的原因（职责）。一，我们需要选择邮件的协议，比如是 pop3还是 imap；二、邮件内容使用
+html格式、text格式，还是其它格式。对于使用一个类，这里我们引出两个场景：
+
+1. 添加一个新的邮件协议。我们需要为每一个邮件类型（比如html、text）添加解析和线序化邮件内容的代码
+2. 添加一个新的 content type （比如html）。我们需要为每一个协议提供支持
+
+我们可以看出，两个职责相互交叉，一方面扩展性不好，功能过于耦和，另一方面导致代码的可读性降低，逻辑也更加脆弱。
+
+``` c++
+// single responsibility principle - bad example
+
+class IEmail {
+public:
+	void setSender(string sender) = 0;
+	void setReceiver(string receiver) = 0;
+	void setContent(string content) = 0;
+};
+
+class Email : public IEmail {
+	public void setSender(string sender) {// set sender; }
+	public void setReceiver(string receiver) {// set receiver; }
+	public void setContent(string content) {// set content; }
+}
+```
+
+单一职责原则就是为了解决类似的问题而提出的。针对当前这个问题，我们增加一个类 IContent，用来分离职责。分离后的代码如下：
+
+``` C++
+
+// single responsibility principle - good example
+class IEmail {
+public: 
+  void setSender(string sender) = 0;
+	void setReceiver(string receiver) = 0;
+	void setContent(IContent content) = 0;
+}
+
+class IContent {
+public: 
+  string getAsString() = 0; // used for serialization
+}
+
+class Email : public IEmail {
+public:
+  void setSender(string sender) {// set sender; }
+	void setReceiver(string receiver) {// set receiver; }
+  void setContent(IContent content) {// set content; }
+}
+```
+
+增加了 IContent 以后，功能扩展就简单了很多：
+
+1. 增加一个新协议，只需要改变 Email 类
+2. 增加一个新的 content type，只需要改变 Content 类（Content继承 IContent）
 
 ### 5、Liskov's Substitution Principle(LSP) 里氏替换原则
 *参考链接：http://www.oodesign.com/liskov-s-substitution-principle.html*
 
-未完待续（请耐心等待）
+里氏替换原则，是指在继承体系中，如果一段代码中使用了基类（父类、Base Class）的对象或指针作为参数，
+使用其子类（派生类、Derived Class）对象（指针）进行替换以后，不会产生任何副作用。这里我们看一个反面的例子：
+
+``` c++
+// Violation of Likov's Substitution Principle
+class Rectangle
+{
+	int m_width;
+	int m_height;
+
+public:
+	void setWidth(int width){ m_width = width; }
+	void setHeight(int height){ m_height = height; }
+
+	int getWidth(){ return m_width; }
+	int getHeight(){ return m_height; }
+
+	int getArea(){ return m_width * m_height; }	
+};
+
+class Square : public Rectangle {
+public:
+  void setWidth(int width){
+		m_width = width;
+		m_height = width;
+	}
+
+	void setHeight(int height){
+		m_width = height;
+		m_height = height;
+	}
+};
+
+
+static Rectangle* getNewRectangle(){
+  // it can be an object returned by some factory ... 
+  return new Square();
+}
+
+int main(int argc, char* argv[]) {
+  Rectangle* r = getNewRectangle();
+      
+  r->setWidth(5);
+  r->setHeight(10);
+  // user knows that r it's a rectangle. 
+  // It assumes that he's able to set the width and height as for the base class
+
+  std::cout << r->getArea() << std::endl;
+  // now he's surprised to see that the area is 100 instead of 50.
+}
+```
+
+里氏替换原则是开放关闭原则的延伸，它保证我们在创建派生类扩展基类时，不会改变基类的行为。
+
+关于设计原则，我们就说到这里，下一篇文章，我们将重点讲解一些常用的设计模式。
