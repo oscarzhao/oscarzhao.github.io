@@ -8,3 +8,4 @@ categories: C++
 *本文中列出了C++新特性的一些文章。持续更新～～*
 
 1. [左值、右值、右值引用和 std::move](http://www.cprogramming.com/c++11/rvalue-references-and-move-semantics-in-c++11.html "rvalue")
+2. [Private Inheritance(结合侯捷老师关于tuple实现的讲解)](https://isocpp.org/wiki/faq/private-inheritance "private inheritance")
