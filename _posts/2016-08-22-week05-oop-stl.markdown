@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "C++模板与STL 容器（geekband)"
+title:  "C++模板与STL 容器"
 date:   2016-08-22 11:59:00 +0800
 categories: C++
 ---

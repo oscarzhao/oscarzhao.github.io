@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "C++ 对象模型（geekband)"
+title:  "C++ 对象模型"
 date:   2016-08-07 11:59:00 +0800
 categories: C++
 ---

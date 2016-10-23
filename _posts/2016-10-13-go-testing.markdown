@@ -21,15 +21,22 @@ Go 语言在设计之初就考虑到了代码的可测试性。一方面 Go 本�
 
 ## 阅读建议
 
-在我的第一份工作中，从来没有见过、也没有听说过开发人员自己去写测试代码，测试也仅仅局限于测试人员的白盒测试。
-开发人员写完代码后，只进行简单的功能测试，保证最经常走的逻辑能走通，然后就移交给测试人员。结果是 bug 表现在
-软件的顶层（成型的产品），一方面难以定位，而且随着系统复杂性的增高越来越难；另一方面 跨部门的沟通导致 bug 的反馈链路被拉长。
+**Testing shows the presence, not the absence of bugs** -- [Edsger W. Dijkstra](https://en.wikiquote.org/wiki/Edsger_W._Dijkstra "Dijkstra")
 
-来到云计算行业以后，开始用 kubernetes，努力去理解它的设计理念，逐步了解了 DevOps、Microservice等概念。
-DevOps 理念中，测试是非常重要的一部分；在Kubernetes 项目中，单元测试、集成测试都比比皆是。比葫芦画瓢，
-在公司的项目中也开始尝试自己写测试用例。后来的事实证明，绝大多数 bug 都可以通过单元测试检查出来并修复，代码行为的可控性提高不少。
+为了保证业务逻辑代码的正确性，测试代码应当被赋予同等的重要性。在Github 上的开源代码中，我们经常可以看到一个指标“coverage”，即测试覆盖率。
+最近几年新兴的大型项目，尤其是有多人参与的，大都有较高的代码覆盖率，如 [kubernetes](https://github.com/kubernetes/kubernetes "kubernetes") 84%, 
+[react](https://github.com/facebook/react "react") 88%。很多项目没有给出 test coverage，但稍加注意就能发现不少测试代码，比如 [socket.io](https://github.com/socketio/socket.io "socket.io")、
+[prometheus](https://github.com/prometheus/prometheus "prometheus")、[tensorflow](https://github.com/tensorflow/tensorflow "tensorflow")、[kafka](https://github.com/apache/kafka "kafka")。
+由于 Go 语言工程化程度比较高，对测试支持比较完善，Github 上 Go 语言项目中测试更是随处可见。 
 
-总之，测试非常重要。
+在阅读本文之前，建议您对 Go 语言的 package 有一定的了解，并在实际项目中使用过，下面是一些基本的要求：
+
+1. 了解如何在项目中 import 一个外部的package
+2. 了解如何将自己的项目按照功能模块划分 package
+3. 了解 struct、struct字段、函数、变量名字首字母大小写的含义（非必需）
+4. 了解一些 Go语言的编译选项，比如 +build !windows（非必需）
+
+如果你对 1、2都不太了解，建议阅读一下这篇文章[How to Write Go Code](https://golang.org/doc/code.html, "go code")，动手实践一下。
 
 ## 写一个简单的测试用例
 
@@ -53,6 +60,8 @@ ioutil.TempDir，需要自己去清理文件
 
 1. [golang.org/pkg/testing](https://golang.org/pkg/testing/ "testing")
 2. [Testing Techniques](https://talks.golang.org/2014/testing.slide “testing techniques")
+3. [Table Driven Test](https://github.com/golang/go/wiki/TableDrivenTests "table driven test")
+4. [Learn Testing](https://github.com/golang/go/wiki/LearnTesting "learn testing")
 
 扫码关注微信公众号“深入Go语言”
 

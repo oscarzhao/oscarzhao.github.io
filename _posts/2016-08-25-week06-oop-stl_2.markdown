@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "C++模板与STL (二)（geekband)"
+title:  "C++模板与STL (二)"
 date:   2016-08-25 11:59:00 +0800
 categories: C++
 ---

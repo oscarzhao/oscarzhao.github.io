@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "设计模式 (上)（geekband)"
+title:  "设计模式 (上)"
 date:   2016-09-12 11:59:00 +0800
 categories: C++
 ---
