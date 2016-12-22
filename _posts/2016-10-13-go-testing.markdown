@@ -48,11 +48,8 @@ func equal(a, b int) bool {
 	return a == b
 }
 
-
-// ----------------- separator ----------------------------
 // simple/equal_test.go
 package simple
-
 import (
 	"testing"
 )
@@ -124,10 +121,45 @@ func TestSqrt(t *testing.T) {
 ## 初始化
 
 ## 临时文件
-ioutil.TempDir，需要自己去清理文件
+如果待测试的功能模块涉及到文件操作，临时文件是一个不错的解决方案。go语言的 ioutil 包提供了 TempDir 和 
+TempFile 方法，供我们使用。
 
-## 
+我们以 etcd 创建 wal 文件为例，来看一下 TempDir 的用法：
 
+```
+// github.com/coreos/etcd/wal/wal_test.go
+
+func TestNew(t *testing.T) {
+	p, err := ioutil.TempDir(os.TempDir(), "waltest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(p)  // 千万不要忘记删除目录
+
+	w, err := Create(p, []byte("somedata"))
+	if err != nil {
+		t.Fatalf("err = %v, want nil", err)
+	}
+	if g := path.Base(w.tail().Name()); g != walName(0, 0) {
+		t.Errorf("name = %+v, want %+v", g, walName(0, 0))
+	}
+	defer w.Close()
+
+	// 将文件 waltest 中的数据读取到变量 gb []byte 中 
+	// ...
+
+	// 根据 "somedata" 生成数据，存储在变量 wb byte.Buffer 中
+	// ...
+
+	// 临时文件中的数据（gb）与 生成的数据（wb）进行对比
+	if !bytes.Equal(gd, wb.Bytes()) {
+		t.Errorf("data = %v, want %v", gd, wb.Bytes())
+	}
+}
+```
+
+上面这段代码是从 etcd 中摘取出来的，源码查看 [coreos/etcd - Github](https://github.com/coreos/etcd/blob/2353cbca719f6661c8642d666dd8e16591f5ebb5/wal/wal_test.go "coreos/etcd")。
+需要注意的是，使用 [TempDir](https://golang.org/pkg/io/ioutil/#TempDir "TempDir") 和 [TempFile](https://golang.org/pkg/io/ioutil/#TempFile "TempFile") 创建文件以后，需要自己去删除。
 
 ### 相关链接：
 
