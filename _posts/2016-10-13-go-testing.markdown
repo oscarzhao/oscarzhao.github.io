@@ -40,16 +40,16 @@ Go 语言在设计之初就考虑到了代码的可测试性。一方面 Go 本�
 为了便于理解，我们首先给出一个代码片段（如果你已经使用过go 的单元测试，可以跳过这个环节）：
 
 ```
-// simple/equal.go
-package simple
+// demo/equal.go
+package demo
 
 // a function to check if two numbers equals to each other.
 func equal(a, b int) bool {
 	return a == b
 }
 
-// simple/equal_test.go
-package simple
+// demo/equal_test.go
+package demo
 import (
 	"testing"
 )
@@ -67,7 +67,7 @@ func TestEqual(t *testing.T) {
 
 上面这个例子中，如果你从来没有使用过单元测试，建议在本地开发环境中运行一次。这里有几点需要注意一下：
 
-1. 这两个文件的父目录必须与包名一致（这里是 simple）
+1. 这两个文件的父目录必须与包名一致（这里是 demo），且包名必须是在 $GOPATH 下
 2. 测试用例的函数命名必须符合 TestXXX 格式，并且参数是 t *testing.T 
 3. 了解一下 t.Errorf 与 t.Fatalf 的行为差异  
 
