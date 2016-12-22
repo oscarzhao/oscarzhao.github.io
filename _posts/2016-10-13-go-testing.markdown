@@ -161,6 +161,16 @@ func TestNew(t *testing.T) {
 上面这段代码是从 etcd 中摘取出来的，源码查看 [coreos/etcd - Github](https://github.com/coreos/etcd/blob/2353cbca719f6661c8642d666dd8e16591f5ebb5/wal/wal_test.go "coreos/etcd")。
 需要注意的是，使用 [TempDir](https://golang.org/pkg/io/ioutil/#TempDir "TempDir") 和 [TempFile](https://golang.org/pkg/io/ioutil/#TempFile "TempFile") 创建文件以后，需要自己去删除。
 
+## 关于 package 
+在写单元测试时，一般情况下，我们将功能代码和测试代码放到同一个目录下，仅以后缀 _test 进行区分。
+
+对于复杂的大型项目，功能依赖比较多时，通常在跟目录下再增加一个 test 文件夹，不同的测试
+放到不同的子目录下面，如下图所示：
+
+![kubernetes/kubernetes](http://oat5ddzns.bkt.clouddn.com/test%20package.png)
+
+针对自己的项目进行测试时，可以结合这两种方式实现测试用例，提高代码的可读性和可维护性。
+
 ### 相关链接：
 
 1. [golang.org/pkg/testing](https://golang.org/pkg/testing/ "testing")
