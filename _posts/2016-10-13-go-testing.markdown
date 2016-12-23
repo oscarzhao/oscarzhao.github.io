@@ -22,10 +22,6 @@ Go 语言在设计之初就考虑到了代码的可测试性。一方面 Go 本�
 
 **Testing shows the presence, not the absence of bugs** -- [Edsger W. Dijkstra](https://en.wikiquote.org/wiki/Edsger_W._Dijkstra "Dijkstra")
 
-为了保证业务逻辑代码的正确性，测试代码应当被赋予同等的重要性。在Github 上的开源代码中，我们经常可以看到一个指标“coverage”，即测试覆盖率。
-最近几年新兴的大型项目，尤其是有多人参与的，大都有较高的代码覆盖率，如 [kubernetes](https://github.com/kubernetes/kubernetes "kubernetes")。
-由于 Go 语言工程化程度比较高，对测试支持比较完善，Github 上 Go 语言项目中测试更是随处可见。 
-
 在阅读本文之前，建议您对 Go 语言的 package 有一定的了解，并在实际项目中使用过，下面是一些基本的要求：
 
 1. 了解如何在项目中 import 一个外部的package
