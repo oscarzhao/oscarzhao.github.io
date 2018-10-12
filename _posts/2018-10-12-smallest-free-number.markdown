@@ -18,7 +18,7 @@ categories: Golang go algorithm
 2. 假设 A 中元素的大小在 [0, inf] 之间。
 
 ```{text}
-Note: 由于计算机本身的限制，我们这里加上 inf = 2^31-1
+Note: 由于计算机本身的限制，我们这里假设 inf = 2^31-1
 ```
 
 举几个例子：
