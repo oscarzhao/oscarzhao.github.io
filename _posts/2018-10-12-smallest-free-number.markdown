@@ -12,7 +12,7 @@ categories: Golang go algorithm
 
 ![binary search tree](http://oat5ddzns.bkt.clouddn.com/gophers-binary-search-tree.png)
 
-虽然不会画画，但是并不妨碍用 Go 做一些算法实现的尝试。这里我从 "Pears of Functional Algorithms Design" 里拿了一道题：给定一个无序自然数数组 A，求出不在 A 中的最小自然数，约束条件如下：
+虽然不太信服，还是抱着试试看的心态 Go 做了一些算法实现的尝试。这里我从 "Pears of Functional Algorithms Design" 里拿了一道题：给定一个无序自然数数组 A，求出不在 A 中的最小自然数，约束条件如下：
 
 1. A 中的元素个数是有限的，每个元素都是自然数，并且互不相同（自然数包含 0 和 正整数）。
 2. 假设 A 中元素的大小在 [0, inf] 之间。
@@ -54,6 +54,7 @@ func f(A []int) int {
       return idx
     }
   }
+  return -1 // compile error without it
 }
 ```
 
@@ -106,6 +107,7 @@ func f(A []int) int {
       return i
     }
   }
+  return -1 // compile error without it
 }
 ```
 
@@ -159,6 +161,7 @@ func f(A []int) int {
       return idx
     }
   }
+  return -1 // compile error without it
 }
 ```
 
