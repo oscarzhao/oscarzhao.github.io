@@ -10,7 +10,7 @@ categories: Golang go algorithm
 前一段时间在 reddit 上看到有人推广一篇名为 [GopherCon 2018 - Demystifying Binary Search Tree Algorithms](https://about.sourcegraph.com/go/gophercon-2018-binary-search-tree-algorithms/) 的博客，
 博客中列举了传统大学里学习算法的种种弊端，并强调了用 Go 实现算法是多么简单有趣，然后拿二叉树举了个例子。读完这篇博客以后，我不得不说，真心没看出来 Go 写算法的优势在哪里。但是，配图确实萌翻了，下面盗图一副。
 
-![binary search tree](../assets/2018-10-12/gophers-binary-search-tree.png)
+![binary search tree](http://oat5ddzns.bkt.clouddn.com/gophers-binary-search-tree.png)
 
 虽然不太信服，还是抱着试试看的心态 Go 做了一些算法实现的尝试。这里我从 "Pears of Functional Algorithms Design" 里拿了一道题：给定一个无序自然数数组 A，求出不在 A 中的最小自然数，约束条件如下：
 
