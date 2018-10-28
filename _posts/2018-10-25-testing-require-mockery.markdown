@@ -146,7 +146,130 @@ func Test_Require_EqualValues(t *testing.T) {
 
 # mockery
 
+[mockery](https://github.com/vektra/mockery) 与 Go 指令(directive) 结合使用，我们可以为 interface 快速创建对应的 mock struct。即便没有具体实现，也可以被其他包调用。我们通过 LazyCache 的例子来看它的使用方法。
+首先在本地执行 `go get -u -v github.com/vektra/mockery` 将 mockery 安装在 `PATH` 下。具体步骤如下：
 
+## 假设有一个第三方服务，我们把它封装在 `thirdpartyapi` 包里，并加入 go directive，代码如下：
+
+```{go}
+package thirdpartyapi
+
+//go:generate mockery -name=Client
+
+// Client defines operations a third party service has
+type Client interface {
+	Get(key string) (data interface{}, err error)
+}
+```
+
+## 我们在 `thirdpartyapi` 目录下执行 `go generate`，在 mocks 目录下生成对应的 mock struct。目录结构如下：
+
+```{text}
+thridpartyapi
+│  client.go
+│
+└─mocks
+        Client.go
+```
+
+在执行 `go generate` 时，指令 `//go:generate mockery -name=Client` 被触发。它本质上是 `mockery -name=Client` 的快捷方式，优势是 go generate 可以批量执行多个目录下的多个指令（需要多加一个参数，具体可以参考文档）。
+此时，我们只有 interface，并没有具体的实现，但是不妨碍在 `LazyCache` 中调用它，也不妨碍在测试中调用 `thirdpartyapi` 的 mocks client。为了方便理解，这里把 `LazyCache` 的实现也贴出来 (忽略 import)：
+
+```{go}
+//go:generate mockery -name=LazyCache
+
+// LazyCache defines the methods for the cache
+type LazyCache interface {
+	Get(key string) (data interface{}, err error)
+}
+
+// NewLazyCache instantiates a default lazy cache implementation
+func NewLazyCache(client thirdpartyapi.Client, timeout time.Duration) LazyCache {
+	return &lazyCacheImpl{
+		cacheStore:       make(map[string]cacheValueType),
+		thirdPartyClient: client,
+		timeout:          timeout,
+	}
+}
+
+type cacheValueType struct {
+	data        interface{}
+	lastUpdated time.Time
+}
+
+type lazyCacheImpl struct {
+	sync.RWMutex
+	cacheStore       map[string]cacheValueType
+	thirdPartyClient thirdpartyapi.Client
+	timeout          time.Duration // cache would expire after timeout
+}
+
+// Get implements LazyCache interface
+func (c *lazyCacheImpl) Get(key string) (data interface{}, err error) {
+	c.RLock()
+	val := c.cacheStore[key]
+	c.RUnlock()
+
+	timeNow := time.Now()
+	if timeNow.After(val.lastUpdated.Add(c.timeout)) {
+		// fetch data from third party service and update cache
+		latest, err := c.thirdPartyClient.Get(key)
+		if err != nil {
+			return nil, err
+		}
+
+		val = cacheValueType{latest, timeNow}
+		c.Lock()
+		c.cacheStore[key] = val
+		c.Unlock()
+	}
+
+	return val.data, nil
+}
+```
+
+为了简单，这个实现暂时不考虑 cache miss 或 timeout 与cache被更新的时间间隙，大量请求直接打到 `thirdpartyapi` 可能导致的后果。
+
+在自然科学中，控制变量法被广泛用于各类实验中。在[智库百科](https://wiki.mbalib.com/wiki/%E6%8E%A7%E5%88%B6%E5%8F%98%E9%87%8F%E6%B3%95)，它被定义为 `指把多因素的问题变成多个单因素的问题，而只改变其中的某一个因素，从而研究这个因素对事物影响，分别加以研究，最后再综合解决的方法`。该方法同样适用于计算机科学，尤其是测试不同场景下程序是否能如期望般运行。我们将这种方法应用于本例中 `Get` 方法的测试。
+
+在 `Get` 方法中，可变因素有 `cacheStore`、`thirdPartyClient` 和 `timeout` (`timeout` 需要结合 `cacheStore` 中的 value 才能生效)。在测试中，`cacheStore` 和 `timeout` 是完全可控的，`thirdPartyClient` 的行为需要通过 mocks 自定义期望行为以覆盖默认实现。事实上，mocks 的功能要强大的多，下面我们用代码来看。
+
+## 为 `LazyCache` 写测试
+
+这里，我只拿出 `Cache Miss Update Failure` 一个case 来分析，覆盖所有 case 的代码查看 [github repo](https://todo)。
+
+```{go}
+func TestGet_CacheMiss_Update_Failure(t *testing.T) {
+  testKey := "test_key"
+	errTest := errors.New("test error")
+	mockThirdParty := &mocks.Client{}
+	mockThirdParty.On("Get", testKey).Return(nil, errTest).Once()
+
+	mockCache := &lazyCacheImpl{
+		memStore:         map[string]cacheValueType{},
+		thirdPartyClient: mockThirdParty,
+		timeout:          testTimeout,
+	}
+
+	// test cache miss, fails to fetch from data source
+	_, gotErr := mockCache.Get(testKey)
+	require.Equal(t, errTest, gotErr)
+
+	mock.AssertExpectationsForObjects(t, mockThirdParty)
+}
+```
+
+这里，我们只讨论 `mockThirdParty`，主要有两点：
+
+1. `mockThirdParty.On("Get", testKey).Return(nil, errTest).Once()` 用于定义该对象 `Get` 方法的行为：`Get` 方法接受 `testKey` 作为参数，当且仅当被调用一次时，会返回 `errTest`。如果同样的参数，被调用第二次，就会报错；
+2. `_, gotErr := mockCache.Get(testKey)` 触发一次上一步中定义的行为；
+3. `mock.AssertExpectationsForObjects` 函数会对传入对象进行检查，保证预定义的期望行为完全被精确地触发；
+
+在 table driven test 中，我们可以通过 `mockThirdParty.On` 方法定义 `Get` 针对不同参数返回不同的结果。
+
+在上面的测试中 `.Once()` 等价于 `.Times(1)`。如果去掉 `.Once()`，意味着 `mockThirdParty.Get` 方法可以被调用任意次。
+
+更多 mockery 的使用方法参考 [github](https://github.com/vektra/mockery)
 
 # 小结
 
