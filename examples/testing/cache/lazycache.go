@@ -4,6 +4,8 @@ import (
 	"errors"
 	"sync"
 	"time"
+
+	"github.com/oscarzhao/oscarzhao.github.io/examples/testing/thirdpartyapi"
 )
 
 var (
@@ -14,27 +16,27 @@ var (
 
 // LazyCache defines the methods for the cache
 type LazyCache interface {
-	Get(key string) (data *profileapi.Profile, err error)
+	Get(key string) (data interface{}, err error)
 }
 
 type cacheValueType struct {
-	data        *profileapi.Profile
+	data        interface{}
 	lastUpdated time.Time
 }
 
 type lazyCacheImpl struct {
 	sync.RWMutex
-	memStore   map[string]cacheValueType
-	profileAPI profileapi.UserProfileAPI
-	timeout    time.Duration // cache would expire after timeout
+	memStore         map[string]cacheValueType
+	thirdPartyClient thirdpartyapi.Client
+	timeout          time.Duration // cache would expire after timeout
 }
 
 // NewLazyCache instantiates a default lazy cache implementation
-func NewLazyCache(profileClient profileapi.UserProfileAPI, timeout time.Duration) LazyCache {
+func NewLazyCache(client thirdpartyapi.Client, timeout time.Duration) LazyCache {
 	return &lazyCacheImpl{
-		memStore:   make(map[string]cacheValueType),
-		profileAPI: profileAPI,
-		timeout:    timeout,
+		memStore:         make(map[string]cacheValueType),
+		thirdPartyClient: client,
+		timeout:          timeout,
 	}
 }
 
@@ -47,8 +49,8 @@ func (c *lazyCacheImpl) Get(key string) (data interface{}, err error) {
 	timeNow := time.Now()
 	if timeNow.After(val.lastUpdated.Add(c.timeout)) {
 		// fetch data from redis and update cache
-		latest, err := c.profileClient.Get(key)
-		if err != nil && err != profileapi.ErrNotFound {
+		latest, err := c.thirdPartyClient.Get(key)
+		if err != nil && err != thirdpartyapi.ErrNotFound {
 			return nil, err
 		}
 
@@ -57,9 +59,11 @@ func (c *lazyCacheImpl) Get(key string) (data interface{}, err error) {
 		c.Lock()
 		c.memStore[key] = val
 		c.Unlock()
-
-		return val.data, nil
 	}
 
-	return val.data, err
+	if val.data == nil {
+		return nil, errNotFound
+	}
+
+	return val.data, nil
 }
