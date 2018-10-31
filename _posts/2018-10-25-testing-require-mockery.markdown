@@ -16,7 +16,7 @@ categories: Golang go testing
 1. 使用 `testify/require` 简化 table driven test
 2. 使用 `mockery` 和 `testify/mock` 为 lazy cache 写单元测试
 
-# testify/require
+## testify/require
 
 首先，我们通过一个简单的例子看下 require 的用法。我们针对函数 `Sqrt` 进行测试，其实现为：
 
@@ -76,7 +76,7 @@ func TestSqrt_Panic(t *testing.T) {
 
 上面我们能够看到 `require` 库带来的编码和调试效率的上升。在 table driven test 中，我们会有更深刻的体会。
 
-## Table Driven Test
+### Table Driven Test
 
 我们仍然以 `Sqrt` 为例，来看下如何在 table driven test 中使用 `require`。这里我们测试的传入常规参数的情况，代码实现如下：
 
@@ -144,7 +144,7 @@ func Test_Require_EqualValues(t *testing.T) {
 
 更多 `require` 的方法参考 [require's godoc](https://godoc.org/github.com/stretchr/testify/require)。
 
-# mockery
+## mockery
 
 [mockery](https://github.com/vektra/mockery) 与 Go 指令(directive) 结合使用，我们可以为 interface 快速创建对应的 mock struct。即便没有具体实现，也可以被其他包调用。我们通过 LazyCache 的例子来看它的使用方法。
 首先在本地执行 `go get -u -v github.com/vektra/mockery` 将 mockery 安装在 `PATH` 下。具体步骤如下：
@@ -236,7 +236,7 @@ func (c *lazyCacheImpl) Get(key string) (data interface{}, err error) {
 
 在 `Get` 方法中，可变因素有 `cacheStore`、`thirdPartyClient` 和 `timeout` (`timeout` 需要结合 `cacheStore` 中的 value 才能生效)。在测试中，`cacheStore` 和 `timeout` 是完全可控的，`thirdPartyClient` 的行为需要通过 mocks 自定义期望行为以覆盖默认实现。事实上，mocks 的功能要强大的多，下面我们用代码来看。
 
-## 为 LazyCache 写测试
+### 为 LazyCache 写测试
 
 这里，我只拿出 **Cache Miss Update Failure** 一个case 来分析，覆盖所有 case 的代码查看 [github repo](https://todo)。
 
@@ -273,13 +273,13 @@ func TestGet_CacheMiss_Update_Failure(t *testing.T) {
 
 更多 mockery 的使用方法参考 [github](https://github.com/vektra/mockery)
 
-# 小结
+## 小结
 
 在本文中，我们结合实例讲解了 `testify` 和 `mockery` 两个库在单元测试中的作用。最后分享一个图，希望大家能重视单元测试。
 
 ![忽略TDD和Code Review 的代价](http://pgion9t9f.bkt.clouddn.com/relative%20costs%20of%20fixing%20bugs.png)
 
-# 相关链接：
+## 相关链接
 
 1. [示例代码](https://github.com/oscarzhao/oscarzhao.github.io/tree/master/examples/testing/cache)
 2. [testify](https://github.com/stretchr/testify)
