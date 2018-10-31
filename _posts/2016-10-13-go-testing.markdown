@@ -5,6 +5,8 @@ date:   2016-10-13 11:59:00 +0800
 categories: Golang testing go
 ---
 
+*Warning: 该文章已过期，最新请参考 [使用testify和mockery库简化单元测试](http://www.oscarzhao.me/golang/go/testing/2018/10/25/testing-require-mockery.html)。*
+
 ## 简介
 
 Go 语言在设计之初就考虑到了代码的可测试性。一方面 Go 本身提供了 [testing](https://golang.org/pkg/testing/ "testing") 库，使用方法很简单;
