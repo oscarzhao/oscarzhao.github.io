@@ -165,11 +165,12 @@ type Client interface {
 我们在 thirdpartyapi 目录下执行 `go generate`，在 mocks 目录下生成对应的 mock struct。目录结构如下：
 
 ```{text}
-thridpartyapi
-│  client.go
-│
-└─mocks
-        Client.go
+thirdpartyapi/
+├── client.go
+└── mocks
+    └── Client.go
+
+1 directory, 2 files
 ```
 
 在执行 `go generate` 时，指令 `//go:generate mockery -name=Client` 被触发。它本质上是 `mockery -name=Client` 的快捷方式，优势是 go generate 可以批量执行多个目录下的多个指令（需要多加一个参数，具体可以参考文档）。
