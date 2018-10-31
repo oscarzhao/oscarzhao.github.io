@@ -234,9 +234,9 @@ func (c *lazyCacheImpl) Get(key string) (data interface{}, err error) {
 
 在 `Get` 方法中，可变因素有 `cacheStore`、`thirdPartyClient` 和 `timeout` (`timeout` 需要结合 `cacheStore` 中的 value 才能生效)。在测试中，`cacheStore` 和 `timeout` 是完全可控的，`thirdPartyClient` 的行为需要通过 mocks 自定义期望行为以覆盖默认实现。事实上，mocks 的功能要强大的多，下面我们用代码来看。
 
-## 为 `LazyCache` 写测试
+## 为 LazyCache 写测试
 
-这里，我只拿出 `Cache Miss Update Failure` 一个case 来分析，覆盖所有 case 的代码查看 [github repo](https://todo)。
+这里，我只拿出 **Cache Miss Update Failure** 一个case 来分析，覆盖所有 case 的代码查看 [github repo](https://todo)。
 
 ```{go}
 func TestGet_CacheMiss_Update_Failure(t *testing.T) {
