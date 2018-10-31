@@ -64,9 +64,9 @@ func TestSqrt_Panic(t *testing.T) {
 func TestSqrt_Panic(t *testing.T) {
   defer func() {
     r := recover()
-        if r.(string) != "cannot be negative" {
-            t.Fatalf("expect to panic with message \"cannot be negative\", but got \"%s\"\n", r)
-        }
+      if r.(string) != "cannot be negative" {
+        t.Fatalf("expect to panic with message \"cannot be negative\", but got \"%s\"\n", r)
+      }
   }()
   _ = Sqrt(-1)
 }
@@ -132,13 +132,13 @@ func TestSqrt(t *testing.T) {
 
 ```{go}
 func Test_Require_EqualValues(t *testing.T) {
-	// tests will pass
-	require.EqualValues(t, 12, 12.0, "compare int32 and float64")
-	require.EqualValues(t, 12, int64(12), "compare int32 and int64")
+  // tests will pass
+  require.EqualValues(t, 12, 12.0, "compare int32 and float64")
+  require.EqualValues(t, 12, int64(12), "compare int32 and int64")
 
-	// tests will fail
-	require.Equal(t, 12, 12.0, "compare int32 and float64")
-	require.Equal(t, 12, int64(12), "compare int32 and int64")
+  // tests will fail
+  require.Equal(t, 12, 12.0, "compare int32 and float64")
+  require.Equal(t, 12, int64(12), "compare int32 and int64")
 }
 ```
 
@@ -158,7 +158,7 @@ package thirdpartyapi
 
 // Client defines operations a third party service has
 type Client interface {
-	Get(key string) (data interface{}, err error)
+  Get(key string) (data interface{}, err error)
 }
 ```
 
@@ -180,51 +180,51 @@ thridpartyapi
 
 // LazyCache defines the methods for the cache
 type LazyCache interface {
-	Get(key string) (data interface{}, err error)
+  Get(key string) (data interface{}, err error)
 }
 
 // NewLazyCache instantiates a default lazy cache implementation
 func NewLazyCache(client thirdpartyapi.Client, timeout time.Duration) LazyCache {
-	return &lazyCacheImpl{
-		cacheStore:       make(map[string]cacheValueType),
-		thirdPartyClient: client,
-		timeout:          timeout,
-	}
+  return &lazyCacheImpl{
+    cacheStore:       make(map[string]cacheValueType),
+    thirdPartyClient: client,
+    timeout:          timeout,
+  }
 }
 
 type cacheValueType struct {
-	data        interface{}
-	lastUpdated time.Time
+  data        interface{}
+  lastUpdated time.Time
 }
 
 type lazyCacheImpl struct {
-	sync.RWMutex
-	cacheStore       map[string]cacheValueType
-	thirdPartyClient thirdpartyapi.Client
-	timeout          time.Duration // cache would expire after timeout
+  sync.RWMutex
+  cacheStore       map[string]cacheValueType
+  thirdPartyClient thirdpartyapi.Client
+  timeout          time.Duration // cache would expire after timeout
 }
 
 // Get implements LazyCache interface
 func (c *lazyCacheImpl) Get(key string) (data interface{}, err error) {
-	c.RLock()
-	val := c.cacheStore[key]
-	c.RUnlock()
+  c.RLock()
+  val := c.cacheStore[key]
+  c.RUnlock()
 
-	timeNow := time.Now()
-	if timeNow.After(val.lastUpdated.Add(c.timeout)) {
-		// fetch data from third party service and update cache
-		latest, err := c.thirdPartyClient.Get(key)
-		if err != nil {
-			return nil, err
-		}
+  timeNow := time.Now()
+  if timeNow.After(val.lastUpdated.Add(c.timeout)) {
+    // fetch data from third party service and update cache
+    latest, err := c.thirdPartyClient.Get(key)
+    if err != nil {
+      return nil, err
+    }
 
-		val = cacheValueType{latest, timeNow}
-		c.Lock()
-		c.cacheStore[key] = val
-		c.Unlock()
-	}
+    val = cacheValueType{latest, timeNow}
+    c.Lock()
+    c.cacheStore[key] = val
+    c.Unlock()
+  }
 
-	return val.data, nil
+  return val.data, nil
 }
 ```
 
@@ -241,21 +241,21 @@ func (c *lazyCacheImpl) Get(key string) (data interface{}, err error) {
 ```{go}
 func TestGet_CacheMiss_Update_Failure(t *testing.T) {
   testKey := "test_key"
-	errTest := errors.New("test error")
-	mockThirdParty := &mocks.Client{}
-	mockThirdParty.On("Get", testKey).Return(nil, errTest).Once()
+  errTest := errors.New("test error")
+  mockThirdParty := &mocks.Client{}
+  mockThirdParty.On("Get", testKey).Return(nil, errTest).Once()
 
-	mockCache := &lazyCacheImpl{
-		memStore:         map[string]cacheValueType{},
-		thirdPartyClient: mockThirdParty,
-		timeout:          testTimeout,
-	}
+  mockCache := &lazyCacheImpl{
+    memStore:         map[string]cacheValueType{},
+    thirdPartyClient: mockThirdParty,
+    timeout:          testTimeout,
+  }
 
-	// test cache miss, fails to fetch from data source
-	_, gotErr := mockCache.Get(testKey)
-	require.Equal(t, errTest, gotErr)
+  // test cache miss, fails to fetch from data source
+  _, gotErr := mockCache.Get(testKey)
+  require.Equal(t, errTest, gotErr)
 
-	mock.AssertExpectationsForObjects(t, mockThirdParty)
+  mock.AssertExpectationsForObjects(t, mockThirdParty)
 }
 ```
 
