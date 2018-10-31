@@ -230,7 +230,7 @@ func (c *lazyCacheImpl) Get(key string) (data interface{}, err error) {
 
 为了简单，这个实现暂时不考虑 cache miss 或 timeout 与cache被更新的时间间隙，大量请求直接打到 `thirdpartyapi` 可能导致的后果。
 
-在自然科学中，控制变量法被广泛用于各类实验中。在[智库百科](https://wiki.mbalib.com/wiki/%E6%8E%A7%E5%88%B6%E5%8F%98%E9%87%8F%E6%B3%95)，它被定义为 `指把多因素的问题变成多个单因素的问题，而只改变其中的某一个因素，从而研究这个因素对事物影响，分别加以研究，最后再综合解决的方法`。该方法同样适用于计算机科学，尤其是测试不同场景下程序是否能如期望般运行。我们将这种方法应用于本例中 `Get` 方法的测试。
+在自然科学中，控制变量法被广泛用于各类实验中。在[智库百科](https://wiki.mbalib.com/wiki/%E6%8E%A7%E5%88%B6%E5%8F%98%E9%87%8F%E6%B3%95)，它被定义为 *指把多因素的问题变成多个单因素的问题，而只改变其中的某一个因素，从而研究这个因素对事物影响，分别加以研究，最后再综合解决的方法*。该方法同样适用于计算机科学，尤其是测试不同场景下程序是否能如期望般运行。我们将这种方法应用于本例中 `Get` 方法的测试。
 
 在 `Get` 方法中，可变因素有 `cacheStore`、`thirdPartyClient` 和 `timeout` (`timeout` 需要结合 `cacheStore` 中的 value 才能生效)。在测试中，`cacheStore` 和 `timeout` 是完全可控的，`thirdPartyClient` 的行为需要通过 mocks 自定义期望行为以覆盖默认实现。事实上，mocks 的功能要强大的多，下面我们用代码来看。
 
