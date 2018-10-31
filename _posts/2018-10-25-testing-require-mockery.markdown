@@ -165,6 +165,7 @@ type Client interface {
 我们在 thirdpartyapi 目录下执行 `go generate`，在 mocks 目录下生成对应的 mock struct。目录结构如下：
 
 ```{text}
+~ $ tree thirdpartyapi/
 thirdpartyapi/
 ├── client.go
 └── mocks
