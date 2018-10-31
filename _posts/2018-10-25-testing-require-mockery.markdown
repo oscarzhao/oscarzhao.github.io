@@ -149,7 +149,7 @@ func Test_Require_EqualValues(t *testing.T) {
 [mockery](https://github.com/vektra/mockery) 与 Go 指令(directive) 结合使用，我们可以为 interface 快速创建对应的 mock struct。即便没有具体实现，也可以被其他包调用。我们通过 LazyCache 的例子来看它的使用方法。
 首先在本地执行 `go get -u -v github.com/vektra/mockery` 将 mockery 安装在 `PATH` 下。具体步骤如下：
 
-## 假设有一个第三方服务，我们把它封装在 `thirdpartyapi` 包里，并加入 go directive，代码如下：
+假设有一个第三方服务，我们把它封装在 `thirdpartyapi` 包里，并加入 go directive，代码如下：
 
 ```{go}
 package thirdpartyapi
@@ -162,7 +162,7 @@ type Client interface {
 }
 ```
 
-## 我们在 `thirdpartyapi` 目录下执行 `go generate`，在 mocks 目录下生成对应的 mock struct。目录结构如下：
+我们在 thirdpartyapi 目录下执行 `go generate`，在 mocks 目录下生成对应的 mock struct。目录结构如下：
 
 ```{text}
 thridpartyapi
@@ -273,11 +273,16 @@ func TestGet_CacheMiss_Update_Failure(t *testing.T) {
 
 # 小结
 
-@todo
+在本文中，我们结合实例讲解了 `testify` 和 `mockery` 两个库在单元测试中的作用。最后分享一个图，希望大家能重视单元测试。
+
+![忽略TDD和Code Review 的代价](http://pgion9t9f.bkt.clouddn.com/relative%20costs%20of%20fixing%20bugs.png)
 
 # 相关链接：
 
-@todo
+1. [示例代码](https://github.com/oscarzhao/oscarzhao.github.io/tree/master/examples/testing/cache)
+2. [testify](https://github.com/stretchr/testify)
+3. [mockery](https://github.com/vektra/mockery)
+4. [The Outrageous Cost of Skipping TDD & Code Reviews](https://medium.com/javascript-scene/the-outrageous-cost-of-skipping-tdd-code-reviews-57887064c412)
 
 扫码关注微信公众号“深入Go语言”
 
