@@ -1,2 +1,3 @@
 # oscarzhao.github.io
-my github blog
+
+Source files for my blog site http://www.oscarzhao.me
