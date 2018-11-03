@@ -16,6 +16,15 @@ categories: Golang go testing
 1. 使用 `testify/require` 简化 table driven test
 2. 使用 `mockery` 和 `testify/mock` 为 lazy cache 写单元测试
 
+## 准备工作
+
+```{bash}
+# download require, assert, mock
+go get -u -v github.com/stretchr/testify
+# install mockery into GoBin
+go get -u -v github.com/vektra/mockery/.../
+```
+
 ## testify/require
 
 首先，我们通过一个简单的例子看下 require 的用法。我们针对函数 `Sqrt` 进行测试，其实现为：
