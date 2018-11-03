@@ -9,7 +9,7 @@ categories: Golang go testing
 
 2016年我写过一篇关于[Go语言单元测试](http://www.oscarzhao.me/golang/testing/go/2016/10/13/go-testing.html)的文章，简单介绍了 testing 库的使用方法。后来发现 [testify/require 和 testify/assert](https://github.com/stretchr/testify) 可以大大简化单元测试的写法，完全可以替代 `t.Fatalf` 和 `t.Errorf`，而且代码实现更为简短、优雅。
 
-再后来，发现了 [mockery](https://github.com/vektra/mockery) 库，它可以为 Go interface 生成一个 mocks struct。通过 mocks struct，在单元测试中我们可以模拟所有 normal cases 和 corner cases，让 bug 无处藏身。在测试无状态函数 (对应 FP 中的 pure function) 时，mocks 的意义不大。mocks 的应用场景主要在于不可控的第三方服务、数据库、磁盘读写等，将细节封装到 interface 内部，只把方法暴露给调用方。这样一来，调用方的任何逻辑更改都可以被充分测试到。
+再后来，发现了 [mockery](https://github.com/vektra/mockery) 库，它可以为 Go interface 生成一个 mocks struct。通过 mocks struct，在单元测试中我们可以模拟所有 normal cases 和 corner cases，彻底消除细节实现上的bug。mocks 在测试无状态函数 (对应 FP 中的 pure function) 中意义不大，其应用场景主要在于处理不可控的第三方服务、数据库、磁盘读写等。如果这些服务的调用细节已经被封装到 interface 内部，调用方只看到了 interface 定义的一组方法，那么在测试中 mocks 就能控制第三方服务返回任意期望的结果，进而实现对调用房逻辑的全方位测试。
 
 关于 interface 的诸多用法，我会单独拎出来一篇文章来讲。本文中，我会通过两个例子展示 `testify/require` 和 `mockery` 的用法，分别是：
 
@@ -46,7 +46,7 @@ func Sqrt(x float64) float64 {
 }
 ```
 
-这里我们使用了一个常规的方法实现 `Sqrt`，该实现的最大精确度是到小数点后9位（为了方便演示，这里没有对超出9位的部分进行删除）。我们首先测试 `x < 0` 导致 panic 的情况，看 `require` 如何使用，下面是测试代码：
+这里我们使用了一个常规的方法实现 `Sqrt`，该实现的最大精确度是到小数点后9位（为了方便演示，这里没有对超出9位的部分进行删除）。我们首先测试 `x < 0` 导致 panic 的情况，看 `require` 如何使用，测试代码如下：
 
 ```{go}
 func TestSqrt_Panic(t *testing.T) {
@@ -58,7 +58,7 @@ func TestSqrt_Panic(t *testing.T) {
 }
 ```
 
-在上面的函数中，我们只使用 `require.Equal` 一行代码就实现了运行结果校验。如果使用 `testing` 来实现的话，变成了三行，而且需要手写一串描述：
+在上面的函数中，我们只使用 `require.Equal` 一行代码就实现了运行结果校验。如果使用 `testing` 来实现的话，变成了三行，并且需要手写一串描述：
 
 ```{go}
 func TestSqrt_Panic(t *testing.T) {
@@ -230,15 +230,15 @@ func (c *lazyCacheImpl) Get(key string) (data interface{}, err error) {
 }
 ```
 
-为了简单，这个实现暂时不考虑 cache miss 或 timeout 与cache被更新的时间间隙，大量请求直接打到 `thirdpartyapi` 可能导致的后果。
+为了简单，我们暂时不考虑 cache miss 或 timeout 与cache被更新的时间间隙，大量请求直接打到 `thirdpartyapi` 可能导致的后果。
 
-在自然科学中，控制变量法被广泛用于各类实验中。在[智库百科](https://wiki.mbalib.com/wiki/%E6%8E%A7%E5%88%B6%E5%8F%98%E9%87%8F%E6%B3%95)，它被定义为 *指把多因素的问题变成多个单因素的问题，而只改变其中的某一个因素，从而研究这个因素对事物影响，分别加以研究，最后再综合解决的方法*。该方法同样适用于计算机科学，尤其是测试不同场景下程序是否能如期望般运行。我们将这种方法应用于本例中 `Get` 方法的测试。
+介绍测试之前，我们首先了解一下 "控制变量法"，在自然科学中，它被广泛用于各类实验中。在[智库百科](https://wiki.mbalib.com/wiki/%E6%8E%A7%E5%88%B6%E5%8F%98%E9%87%8F%E6%B3%95)，它被定义为 *指把多因素的问题变成多个单因素的问题，而只改变其中的某一个因素，从而研究这个因素对事物影响，分别加以研究，最后再综合解决的方法*。该方法同样适用于计算机科学，尤其是测试不同场景下程序是否能如期望般运行。我们将这种方法应用于本例中 `Get` 方法的测试。
 
 在 `Get` 方法中，可变因素有 `cacheStore`、`thirdPartyClient` 和 `timeout` (`timeout` 需要结合 `cacheStore` 中的 value 才能生效)。在测试中，`cacheStore` 和 `timeout` 是完全可控的，`thirdPartyClient` 的行为需要通过 mocks 自定义期望行为以覆盖默认实现。事实上，mocks 的功能要强大的多，下面我们用代码来看。
 
 ### 为 LazyCache 写测试
 
-这里，我只拿出 **Cache Miss Update Failure** 一个case 来分析，覆盖所有 case 的代码查看 [github repo](https://todo)。
+这里，我只拿出 **Cache Miss Update Failure** 一个case 来分析，覆盖所有 case 的代码查看 [github repo](https://github.com/oscarzhao/oscarzhao.github.io/blob/master/examples/testing/cache)。
 
 ```{go}
 func TestGet_CacheMiss_Update_Failure(t *testing.T) {
@@ -261,7 +261,7 @@ func TestGet_CacheMiss_Update_Failure(t *testing.T) {
 }
 ```
 
-这里，我们只讨论 `mockThirdParty`，主要有两点：
+这里，我们只讨论 `mockThirdParty`，主要有三点：
 
 1. `mockThirdParty.On("Get", testKey).Return(nil, errTest).Once()` 用于定义该对象 `Get` 方法的行为：`Get` 方法接受 `testKey` 作为参数，当且仅当被调用一次时，会返回 `errTest`。如果同样的参数，被调用第二次，就会报错；
 2. `_, gotErr := mockCache.Get(testKey)` 触发一次上一步中定义的行为；
