@@ -94,7 +94,11 @@ bugfix 要紧急上线？先过了单元测试的所有 case
 值得吗？当你和一群聪明人一起解决一个个难题时，当你写的服务被数十万、百万、甚至数亿人使用时，当月末收到银行的转账短信时，当然，值得！
 
 
-
 我亲爱的小伙伴，既然看到这儿了，你还在犹豫什么？简历砸过来吧
 
 点击链接查看职位信息： https://job.toutiao.com/2018/spring_referral/?token=qj3JH9m17NQ2FiLwGEFzBA%3D%3D&key=MjA5OTIsMTE3NjcsMTE0ODAsMjcyNjgsMjA5OTQsMTIzODU%3D
+
+
+扫码关注微信公众号“深入Go语言”
+
+![在这里]( http://oat5ddzns.bkt.clouddn.com/qrcode_for_gh_9280bd217b46_430.jpg "qrcode")
