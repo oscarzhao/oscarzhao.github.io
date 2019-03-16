@@ -9,7 +9,7 @@ categories: Golang go testing
 
 2016年我写过一篇关于[Go语言单元测试](http://www.oscarzhao.me/golang/testing/go/2016/10/13/go-testing.html)的文章，简单介绍了 testing 库的使用方法。后来发现 [testify/require 和 testify/assert](https://github.com/stretchr/testify) 可以大大简化单元测试的写法，完全可以替代 `t.Fatalf` 和 `t.Errorf`，而且代码实现更为简短、优雅。
 
-再后来，发现了 [mockery](https://github.com/vektra/mockery) 库，它可以为 Go interface 生成一个 mocks struct。通过 mocks struct，在单元测试中我们可以模拟所有 normal cases 和 corner cases，彻底消除细节实现上的bug。mocks 在测试无状态函数 (对应 FP 中的 pure function) 中意义不大，其应用场景主要在于处理不可控的第三方服务、数据库、磁盘读写等。如果这些服务的调用细节已经被封装到 interface 内部，调用方只看到了 interface 定义的一组方法，那么在测试中 mocks 就能控制第三方服务返回任意期望的结果，进而实现对调用房逻辑的全方位测试。
+再后来，发现了 [mockery](https://github.com/vektra/mockery) 库，它可以为 Go interface 生成一个 mocks struct。通过 mocks struct，在单元测试中我们可以模拟所有 normal cases 和 corner cases，彻底消除细节实现上的bug。mocks 在测试无状态函数 (对应 FP 中的 pure function) 中意义不大，其应用场景主要在于处理不可控的第三方服务、数据库、磁盘读写等。如果这些服务的调用细节已经被封装到 interface 内部，调用方只看到了 interface 定义的一组方法，那么在测试中 mocks 就能控制第三方服务返回任意期望的结果，进而实现对调用方逻辑的全方位测试。
 
 关于 interface 的诸多用法，我会单独拎出来一篇文章来讲。本文中，我会通过两个例子展示 `testify/require` 和 `mockery` 的用法，分别是：
 
@@ -156,7 +156,6 @@ func Test_Require_EqualValues(t *testing.T) {
 ## mockery
 
 [mockery](https://github.com/vektra/mockery) 与 Go 指令(directive) 结合使用，我们可以为 interface 快速创建对应的 mock struct。即便没有具体实现，也可以被其他包调用。我们通过 LazyCache 的例子来看它的使用方法。
-首先在本地执行 `go get -u -v github.com/vektra/mockery` 将 mockery 安装在 `PATH` 下。具体步骤如下：
 
 假设有一个第三方服务，我们把它封装在 `thirdpartyapi` 包里，并加入 go directive，代码如下：
 
@@ -243,7 +242,7 @@ func (c *lazyCacheImpl) Get(key string) (data interface{}, err error) {
 
 介绍测试之前，我们首先了解一下 "控制变量法"，在自然科学中，它被广泛用于各类实验中。在[智库百科](https://wiki.mbalib.com/wiki/%E6%8E%A7%E5%88%B6%E5%8F%98%E9%87%8F%E6%B3%95)，它被定义为 *指把多因素的问题变成多个单因素的问题，而只改变其中的某一个因素，从而研究这个因素对事物影响，分别加以研究，最后再综合解决的方法*。该方法同样适用于计算机科学，尤其是测试不同场景下程序是否能如期望般运行。我们将这种方法应用于本例中 `Get` 方法的测试。
 
-在 `Get` 方法中，可变因素有 `cacheStore`、`thirdPartyClient` 和 `timeout` (`timeout` 需要结合 `cacheStore` 中的 value 才能生效)。在测试中，`cacheStore` 和 `timeout` 是完全可控的，`thirdPartyClient` 的行为需要通过 mocks 自定义期望行为以覆盖默认实现。事实上，mocks 的功能要强大的多，下面我们用代码来看。
+在 `Get` 方法中，可变因素有 `cacheStore`、`thirdPartyClient` 和 `timeout`。在测试中，`cacheStore` 和 `timeout` 是完全可控的，`thirdPartyClient` 的行为需要通过 mocks 自定义期望行为以覆盖默认实现。事实上，mocks 的功能要强大的多，下面我们用代码来看。
 
 ### 为 LazyCache 写测试
 
