@@ -10,7 +10,6 @@ title: Oscar's Programming Blog
 email: oscarzhaosl@gmail.com
 description: > # Some ideas about C++, golang, kubernetes, etc.
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "http://oscarzhao.me" # the base hostname & protocol for your site
 github_username:  oscarzhao
 
 # Build settings
