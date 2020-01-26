@@ -137,10 +137,9 @@ func (o *Once) Do(f func()) {
 
 ## 发散一下
 
-在 Scala 里，有一个关键词 `lazy`，实现了 sync.Once 同样的功能。具体实现上，使用 volatile 修饰状态变量 `done`，使用 `synchronized` 替代 `m Mutex`。
+在 Scala 里，有一个关键词 `lazy`，实现了 sync.Once 同样的功能。具体实现上，早期版本使用了 volatile 修饰状态变量 `done`，使用 `synchronized` 替代 `m Mutex`；后来，也改成了基于CAS的方式。
 
 使用体验上，显然 `lazy` 更香！
-
 
 ## References
 
