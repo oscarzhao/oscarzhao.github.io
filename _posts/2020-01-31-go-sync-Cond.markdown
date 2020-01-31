@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Golang package sync 剖析(二)：sync.Cond
+title: Golang package sync 剖析(三)：sync.Cond
 date: 2020-01-31 16:55:00 +0800
 categories: Golang sync sync.Cond
 ---
