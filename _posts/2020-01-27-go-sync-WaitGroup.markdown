@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Golang package sync 剖析(二)： sync.WaitGroup
+title: Golang package sync 剖析(二)：sync.WaitGroup
 date: 2020-01-27 20:38:00 +0800
 categories: Golang sync sync.WaitGroup
 ---

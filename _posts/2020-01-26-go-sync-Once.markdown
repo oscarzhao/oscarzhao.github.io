@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Golang package sync 剖析(一)： sync.Once
+title: Golang package sync 剖析(一)：sync.Once
 date: 2020-01-26 19:27:00 +0800
 categories: golang sync sync.Once
 ---
