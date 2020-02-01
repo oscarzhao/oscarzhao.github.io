@@ -212,7 +212,7 @@ func (f *FIFO) Add(obj interface{}) error {
 Wait atomically unlocks c.L and suspends execution of the calling goroutine. After later resuming execution, Wait locks c.L before returning.
 ```
 
-大概意思是： `Wait` 首先会解锁 c.L，然后阻塞当前的协程；后续协程被 Broadcast/Signal 唤醒以后，在对 c.L 加锁，然后 return。
+大概意思是： `Wait` 首先会解锁 c.L，然后阻塞当前的协程；后续协程被 Broadcast/Signal 唤醒以后，再对 c.L 加锁，然后 return。
 
 所以，`cond sync.Cond` 的初始化需要一把锁，并且和 FIFO 实例用同一把锁。
 
