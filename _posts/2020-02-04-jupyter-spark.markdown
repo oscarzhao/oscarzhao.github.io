@@ -123,6 +123,31 @@ jupyter nbextension enable --py jupyter_spark
 jupyter nbextension enable --py widgetsnbextension
 ```
 
+### 3.2.1 检查插件运行
+
+1. 启动 jupyter notebook
+
+```bash
+cd ~/python3/jupyter/mozilla/jupyter-spark
+jupyter notebook
+```
+
+2. 在 Web UI 上，打开 `examples/Jupyter Spark example.ipynb`
+
+修改 spark 对象的创建方式，设置 master URL：
+
+```python
+spark = SparkSession \
+            .builder \
+            .master("spark://127.0.0.1:7077") \
+            .appName("PythonPi") \
+            .getOrCreate()
+```
+
+3. 点击 `Cells -> Run All`，观察 Jupyter Notebook 和 Spark Web UI
+
+Spark Web UI： http://localhost:8080/
+
 ## 3.3 安装 sparkmagic
 
 [sparkmagic 使用指南完整版](https://github.com/jupyter-incubator/sparkmagic)
