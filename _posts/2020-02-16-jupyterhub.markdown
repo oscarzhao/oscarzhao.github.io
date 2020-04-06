@@ -1,8 +1,8 @@
 ---
 layout: post
-title: MacOS 安装 JupyterNotebook 和 Spark 插件
-date: 2020-02-04 17:11:00 +0800
-categories: Apache Spark Jupyter
+title: MacOS 安装 JupyterHub
+date: 2020-02-16 17:55:00 +0800
+categories: Apache Spark Jupyter JupyterHub
 ---
 
 # 一、安装多个版本 Python
@@ -148,22 +148,11 @@ spark = SparkSession \
 
 Spark Web UI： http://localhost:8080/
 
-# 四、安装 Jupyterhub
+# 四、启动 Jupyter Notebook
 
-```bash
-pip install jupyterhub
-npm install -g configurable-http-proxy
-```
 
-测试jupyterhub
-
-```
-jupyterhub -h
-configurable-http-proxy -h
-```
 
 # References
 
 1. [cat to file >>EOF](https://stackoverflow.com/questions/2500436/how-does-cat-eof-work-in-bash)
 
-2. [jupyterhub tutorial](https://github.com/jupyterhub/jupyterhub-tutorial)
